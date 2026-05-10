@@ -343,6 +343,16 @@
         const supportBlock = document.getElementById('support-details');
 
         document.getElementById('btn-legend-trigger').addEventListener('click', () => {
+            const womenActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(1).active');
+            const lgbtActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(2).active');
+            
+            const legendRows = legendOverlay.querySelectorAll('.legend-row');
+            if (legendRows.length >= 3) {
+                legendRows[0].style.display = womenActive ? 'flex' : 'none';
+                legendRows[1].style.display = lgbtActive ? 'flex' : 'none';
+                legendRows[2].style.display = (womenActive && lgbtActive) ? 'flex' : 'none';
+            }
+
             legendOverlay.classList.add('active');
         });
 
