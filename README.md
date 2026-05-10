@@ -14,7 +14,7 @@ O SafeMap foca na excelência da jornada do usuário, desde a identificação de
 Para configurar o ambiente do SafeMap localmente, temos alguns critérios e passos a seguir:
 
 1. **Instale uma IDE**: Recomendamos o uso do IntelliJ IDEA (preferencial), Eclipse ou VS Code.
-2. **Configure o Maven**: O uso do Maven 3.9+ instalado globalmente é recomendado. ([Download Maven](https://maven.apache.org/download.cgi)) *(Nota: o projeto também possui o Maven Wrapper `./mvnw` embutido para facilitar).*
+2. **Configure o Maven**: O uso do Maven 3.9.15 ou superior instalado globalmente é recomendado. ([Download Maven](https://maven.apache.org/download.cgi)) *(Nota: o projeto também possui o Maven Wrapper `./mvnw` embutido para facilitar).*
 3. **Java JDK 21**: O projeto utiliza o JDK 21 (Recomendado: Amazon Corretto 21). ([Download Corretto 21](https://docs.aws.amazon.com/corretto/latest/corretto-21-ug/downloads-list.html))
 
 ## Configuração do Projeto para Desenvolvimento Local
