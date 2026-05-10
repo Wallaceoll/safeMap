@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Recursos de apoio - safeMap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/apoio.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <button class="back-btn" onclick="history.back()"><i data-lucide="arrow-left" size="24"></i></button>
+            <h1 class="header-title">Recursos de apoio</h1>
+        </header>
+        <div class="header-divider"></div>
+
+        <main>
+            <div class="search-container">
+                <input type="text" class="search-input" id="resource-search" placeholder="Buscar locais de apoio">
+                <i data-lucide="search" class="search-icon" size="20"></i>
+            </div>
+
+            <div class="resource-list" id="resource-list"></div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="map-pin"></i></div>
+                <span>Mapa</span>
+            </a>
+            <a href="relatar.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="plus-circle"></i></div>
+                <span>Relatar</span>
+            </a>
+            <a href="apoio.html" class="nav-item active">
+                <div class="nav-icon-wrapper"><i data-lucide="handshake"></i></div>
+                <span>Apoio</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        const resources = [
+            {
+                name: "Hospital Ipiranga",
+                subtitle: "Zona Sul • São Paulo - SP",
+                address: "Rua Silva Bueno, 1647 - Ipiranga, São Paulo - SP",
+                time: "Aberto 24h",
+                distance: 0.5,
+                mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Hospital+Ipiranga+SP"
+            },
+            {
+                name: "Centro de Apoio LGBT+ Arouche",
+                subtitle: "Centro • São Paulo - SP",
+                address: "Largo do Arouche, 10 - Centro, São Paulo - SP",
+                time: "Aberto das 09h às 20h",
+                distance: 1.2,
+                mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Largo+do+Arouche+SP"
+            },
+            {
+                name: "Casa da Mulher Brasileira",
+                subtitle: "Região Central • São Paulo - SP",
+                address: "Rua Antônio de Oliveira, 100 - Cambuci, São Paulo - SP",
+                time: "Aberto 24h",
+                distance: 2.8,
+                mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Casa+da+Mulher+Brasileira+SP"
+            },
+            {
+                name: "Delegacia da Mulher Itaquera",
+                subtitle: "Zona Leste • São Paulo - SP",
+                address: "Rua Antônio de Olivoka, 100 - Itaquera, São Paulo - SP",
+                time: "Aberto das 08h às 18h",
+                distance: 15.4,
+                mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Delegacia+da+Mulher+Itaquera"
+            }
+        ];
+
+        const listContainer = document.getElementById('resource-list');
+        const searchInput = document.getElementById('resource-search');
+
+        function renderResources(filter = "") {
+            listContainer.innerHTML = "";
+            let filtered = resources.filter(r => 
+                r.name.toLowerCase().includes(filter.toLowerCase()) || 
+                r.address.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            filtered.sort((a, b) => a.distance - b.distance);
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center; padding: 40px; color: #9CA3AF;">Nenhum local encontrado.</div>`;
+                return;
+            }
+
+            if (!filter) {
+                const header = document.createElement('h3');
+                header.style.cssText = "font-size: 14px; color: #6B7280; margin: 0 0 16px 4px; font-weight: 600;";
+                header.textContent = "Locais mais próximos de você";
+                listContainer.appendChild(header);
+            }
+
+            filtered.forEach(r => {
+                const card = document.createElement('div');
+                card.className = "resource-card";
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <h2>${r.name}</h2>
+                        <span style="font-size: 12px; font-weight: 700; color: #0D9488; background: #F0FDFA; padding: 4px 8px; border-radius: 8px;">
+                            A ${r.distance} km
+                        </span>
+                    </div>
+                    <span class="card-subtitle">${r.subtitle}</span>
+                    <div class="card-info">
+                        <div class="info-item">
+                            <i data-lucide="map-pin" size="18"></i>
+                            <span>${r.address}</span>
+                        </div>
+                        <div class="info-item status">
+                            <i data-lucide="clock" size="18"></i>
+                            <span>${r.time}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-card-action" onclick="window.open('${r.mapUrl}', '_blank')">
+                            <i data-lucide="map" size="18"></i> Ver rota
+                        </button>
+                        <button class="btn-card-action btn-external"><i data-lucide="external-link" size="20"></i></button>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        searchInput.addEventListener('input', (e) => renderResources(e.target.value));
+        renderResources();
+        lucide.createIcons();
+    </script>
+</body>
+</html>

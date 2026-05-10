@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Detalhes do Relato - safeMap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/detalhes.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header" style="background-color: var(--white); border-bottom: 1px solid #F3F4F6;">
+            <button class="back-btn" onclick="history.back()"><i data-lucide="arrow-left" size="24"></i></button>
+            <h1 style="font-size: 18px; font-weight: 700; color: #111827;">Detalhes do Relato</h1>
+            <div style="width: 40px;"></div>
+        </header>
+
+        <main class="detail-container">
+            <div class="report-header-info">
+                <span class="type-badge">Agressão Física</span>
+                <span style="font-size: 13px; color: #9CA3AF; margin-left: auto;">Há 2 horas</span>
+            </div>
+
+            <div class="report-card">
+                <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 8px;">Ocorrência na Av. Paulista</h2>
+                <p class="report-description">
+                    Fui abordado de forma agressiva próximo ao vão do MASP. O indivíduo estava visivelmente alterado e proferiu insultos homofóbicos seguidos de empurrões. Outras pessoas intervieram e consegui me afastar em segurança.
+                </p>
+
+                <div class="report-meta">
+                    <div class="meta-item">
+                        <i data-lucide="map-pin" size="18"></i>
+                        <span>Av. Paulista, 1578 - Bela Vista</span>
+                    </div>
+                    <div class="meta-item">
+                        <i data-lucide="calendar" size="18"></i>
+                        <span>10 de Maio, 2026 às 22:45</span>
+                    </div>
+                    <div class="meta-item">
+                        <i data-lucide="shield-check" size="18" style="color: #10B981;"></i>
+                        <span style="color: #10B981; font-weight: 600;">Verificado pela comunidade</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="evidence-title">Evidências e Fotos</h3>
+                <div class="evidence-grid">
+                    <div class="evidence-item"><i data-lucide="image" size="24"></i></div>
+                    <div class="evidence-item"><i data-lucide="image" size="24"></i></div>
+                </div>
+            </div>
+
+            <button class="btn-help-center" style="margin-top: auto; background-color: #FEE2E2; color: #EF4444; box-shadow: none;">
+                <i data-lucide="alert-octagon" size="20"></i>
+                <span>Denunciar como falso</span>
+            </button>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item active">
+                <div class="nav-icon-wrapper"><i data-lucide="map-pin"></i></div>
+                <span>Mapa</span>
+            </a>
+            <a href="relatar.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="plus-circle"></i></div>
+                <span>Relatar</span>
+            </a>
+            <a href="apoio.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="handshake"></i></div>
+                <span>Apoio</span>
+            </a>
+        </nav>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

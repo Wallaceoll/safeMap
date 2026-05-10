@@ -1,0 +1,88 @@
+:root {
+    --primary-purple: #5A36A3;
+    --primary-purple-light: #F3EFFF;
+    --bg-body: #FDFBFF;
+    --white: #FFFFFF;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --text-muted: #9CA3AF;
+    --success-green: #059669;
+    --danger-red: #E11D48;
+    --warning-orange: #F59E0B;
+    --support-teal: #0D9488;
+    --border-color: #F3F4F6;
+    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
+
+input::-webkit-contacts-auto-fill-button, 
+input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    display: none !important;
+    pointer-events: none;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    line-height: 1.5;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 430px;
+    background-color: var(--bg-body);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 430px;
+    background-color: var(--white);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0 24px;
+    border-top: 1px solid #F3F4F6;
+    z-index: 1000;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    color: #9CA3AF;
+    font-size: 11px;
+}
+
+.nav-item.active { color: var(--primary-purple); }
+.nav-item.active span { font-weight: 700; }
+.nav-item.active svg { color: var(--primary-purple); fill: var(--primary-purple); }
+.nav-item.active .lucide-plus-circle, 
+.nav-item.active .lucide-handshake { fill: none; }
+.nav-item.active .lucide-map-pin circle { fill: var(--white); stroke: none; }
+
+.nav-item svg { width: 24px; height: 24px; stroke-width: 1.5px; }

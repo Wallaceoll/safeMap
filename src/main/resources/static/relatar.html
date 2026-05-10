@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Relatar ocorrência - safeMap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/relatar.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <button class="back-btn" onclick="history.back()"><i data-lucide="arrow-left" size="24"></i></button>
+            <h1 class="header-title">Relatar ocorrência</h1>
+        </header>
+        <p class="header-subtitle">Ajude outras pessoas reportando situações</p>
+        <div class="header-divider"></div>
+
+        <main>
+            <form onsubmit="handleReport(event)">
+                <div class="form-group">
+                    <label>Tipo de ocorrência</label>
+                    <select class="input-control" id="report-type">
+                        <option value="perigo">Selecione o tipo</option>
+                        <option value="assalto">Assalto</option>
+                        <option value="assedio">Assédio</option>
+                        <option value="local-perigoso">Local perigoso</option>
+                        <option value="iluminacao">Iluminação precária</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Público-alvo do risco</label>
+                    <div style="display: flex; gap: 12px; margin-top: 8px;">
+                        <label style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 12px 16px; border: 1px solid #E5E7EB; border-radius: 12px; cursor: pointer; background-color: #F9FAFB;">
+                            <input type="radio" name="target-group" value="women" checked>
+                            <span style="font-size: 14px; font-weight: 500;">Mulheres</span>
+                        </label>
+                        <label style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 12px 16px; border: 1px solid #E5E7EB; border-radius: 12px; cursor: pointer; background-color: #F9FAFB;">
+                            <input type="radio" name="target-group" value="lgbt">
+                            <span style="font-size: 14px; font-weight: 500;">LGBT+</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição da ocorrência (opcional)</label>
+                    <textarea class="input-control" id="report-desc" placeholder="Descreva o ocorrência"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Local da ocorrência</label>
+                    <div class="input-wrapper">
+                        <input type="text" class="input-control" id="report-loc" value="Localização atual">
+                        <i data-lucide="locate-fixed" class="input-icon-right" size="20"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Data e hora</label>
+                    <div class="input-wrapper">
+                        <input type="datetime-local" class="input-control" id="report-datetime">
+                        <i data-lucide="calendar" class="input-icon-right" size="20" style="pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                <p class="form-hint">Se preferir, você pode ajustar essas informações.</p>
+
+                <button type="submit" class="btn-primary">Enviar ocorrência</button>
+            </form>
+
+            <div class="info-box">
+                <i data-lucide="info" size="20"></i>
+                <p>
+                    <strong>Importante:</strong> Seus relatos ajudam a manter a comunidade segura. Relate situações reais com responsabilidade.
+                </p>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="map-pin"></i></div>
+                <span>Mapa</span>
+            </a>
+            <a href="relatar.html" class="nav-item active">
+                <div class="nav-icon-wrapper"><i data-lucide="plus-circle"></i></div>
+                <span>Relatar</span>
+            </a>
+            <a href="apoio.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="handshake"></i></div>
+                <span>Apoio</span>
+            </a>
+        </nav>
+    </div>
+    <script>
+        lucide.createIcons();
+
+        // Preencher data e hora atual
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('report-datetime').value = now.toISOString().slice(0, 16);
+
+        function handleReport(e) {
+            e.preventDefault();
+            const type = document.getElementById('report-type').value;
+            const desc = document.getElementById('report-desc').value;
+            const loc = document.getElementById('report-loc').value;
+            const datetime = document.getElementById('report-datetime').value;
+
+            const mockCoords = {
+                'paulista': { top: '1310px', left: '1290px' },
+                'ibirapuera': { top: '1680px', left: '1450px' },
+                'faria lima': { top: '1120px', left: '1080px' },
+                'pinheiros': { top: '780px', left: '620px' },
+                'jardins': { top: '1140px', left: '1220px' }
+            };
+
+            const query = loc.toLowerCase();
+            let coords = null;
+            for (let key in mockCoords) {
+                if (query.includes(key)) {
+                    coords = mockCoords[key];
+                    break;
+                }
+            }
+
+            if (!coords) {
+                coords = {
+                    top: Math.floor(Math.random() * (600 - 300) + 300) + 'px',
+                    left: Math.floor(Math.random() * (300 - 50) + 50) + 'px'
+                };
+            }
+
+            const targetGroup = document.querySelector('input[name="target-group"]:checked').value;
+            
+            const newReport = {
+                type: (type === 'assalto' || type === 'assedio') ? 'danger' : 'warning',
+                description: desc,
+                locationName: loc,
+                top: coords.top,
+                left: coords.left,
+                targetGroup: targetGroup
+            };
+
+            const reports = JSON.parse(localStorage.getItem('userReports') || '[]');
+            reports.push(newReport);
+            localStorage.setItem('userReports', JSON.stringify(reports));
+
+            window.location.href = 'index.html?success=true';
+        }
+    </script>
+</body>
+</html>

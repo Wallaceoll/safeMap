@@ -1,0 +1,91 @@
+.app-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    background-color: var(--white);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--primary-purple);
+    cursor: pointer;
+    padding: 8px;
+    margin-left: -8px;
+    position: absolute;
+    left: 20px;
+    z-index: 10;
+}
+
+.header-title {
+    flex: 1;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.header-divider {
+    height: 1px;
+    background-color: #F3F4F6;
+    width: calc(100% - 40px);
+    margin: 0 auto;
+    flex-shrink: 0;
+}
+
+main { 
+    padding: 20px; 
+    flex: 1; 
+    overflow-y: auto; 
+    background-color: #FDFBFF;
+}
+
+.search-container { margin-bottom: 24px; position: relative; }
+.search-input {
+    width: 100%;
+    padding: 14px 48px 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    background-color: var(--white);
+    font-size: 15px;
+    outline: none;
+    color: #6B7280;
+}
+.search-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: #9CA3AF; }
+
+.resource-list { display: flex; flex-direction: column; gap: 20px; padding-bottom: 40px; }
+.resource-card {
+    background-color: var(--white);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.02);
+}
+.resource-card h2 { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+.card-subtitle { font-size: 13.5px; color: #6B7280; margin-bottom: 20px; display: block; }
+
+.card-info { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.info-item { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.4; color: #374151; }
+.info-item i { color: var(--primary-purple); flex-shrink: 0; margin-top: 2px; }
+.info-item.status { color: #059669; font-weight: 500; }
+.info-item.status i { color: #059669; }
+
+.card-actions { display: flex; gap: 12px; }
+.btn-card-action {
+    flex: 1;
+    padding: 12px;
+    background-color: #F5F3FF;
+    color: var(--primary-purple);
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+}
+.btn-external { width: 54px; flex: none; }
