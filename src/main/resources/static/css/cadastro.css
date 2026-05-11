@@ -1,8 +1,12 @@
+.app-container {
+    background-color: #F5F3FF;
+}
+
 .app-header {
     padding: 16px 20px;
     display: flex;
     align-items: center;
-    background-color: var(--white);
+    background-color: #F5F3FF;
     position: relative;
 }
 
@@ -33,9 +37,15 @@
     margin: 0 auto;
 }
 
-main { padding: 40px 20px 20px; flex: 1; }
+main {
+    padding: 40px 20px 20px;
+    flex: 1;
+}
 
-.form-group { margin-bottom: 20px; }
+.form-group {
+    margin-bottom: 20px;
+}
+
 .form-group label {
     display: block;
     font-size: 14px;
@@ -44,7 +54,10 @@ main { padding: 40px 20px 20px; flex: 1; }
     color: #111827;
 }
 
-.input-wrapper { position: relative; }
+.input-wrapper {
+    position: relative;
+}
+
 .input-control {
     width: 100%;
     padding: 14px 44px 14px 16px;
@@ -55,9 +68,13 @@ main { padding: 40px 20px 20px; flex: 1; }
     outline: none;
     transition: border-color 0.2s;
 }
-.input-control:focus { border-color: var(--primary-purple); }
 
-.input-icon-right, .toggle-password {
+.input-control:focus {
+    border-color: var(--primary-purple);
+}
+
+.input-icon-right,
+.toggle-password {
     position: absolute;
     right: 14px;
     top: 50%;
@@ -91,6 +108,7 @@ main { padding: 40px 20px 20px; flex: 1; }
     font-size: 15px;
     color: #111827;
 }
+
 .login-link a {
     color: var(--primary-purple);
     font-weight: 700;

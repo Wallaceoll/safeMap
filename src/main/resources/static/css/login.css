@@ -1,8 +1,12 @@
+.app-container {
+    background-color: #F5F3FF;
+}
+
 .app-header {
     padding: 16px 20px;
     display: flex;
     align-items: center;
-    background-color: var(--white); 
+    background-color: #F5F3FF; 
     position: relative;
 }
 
