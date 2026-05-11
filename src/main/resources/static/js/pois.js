@@ -109,6 +109,17 @@ async function loadPOIs() {
                 supportBlock.style.display = 'block';
                 detailsOverlay.classList.add('active');
 
+                // Configurar o botão "Ver local na lista de apoio"
+                const howToGetBtn = document.getElementById('btn-view-on-support');
+                if (howToGetBtn) {
+                    howToGetBtn.onclick = (e) => {
+                        e.preventDefault();
+                        const name = tags.name || typeName;
+                        console.log("Navegando para Apoio com busca:", name);
+                        window.location.href = `apoio.html?search=${encodeURIComponent(name)}`;
+                    };
+                }
+
                 if (window.safeMap.getAddressFromCoords) {
                     const geoData = await window.safeMap.getAddressFromCoords(latlng[0], latlng[1]);
                     if (geoData) {

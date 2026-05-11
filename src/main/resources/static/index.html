@@ -248,9 +248,9 @@
                         <i data-lucide="info" size="18" style="color: var(--primary-purple);"></i>
                         <p id="support-type">Ponto de acolhimento e suporte jurídico.</p>
                     </div>
-                    <button class="btn-help-center" style="margin-top: 24px;">
-                        <i data-lucide="navigation" size="20"></i>
-                        <span>Como chegar</span>
+                    <button id="btn-view-on-support" class="btn-help-center" style="margin-top: 24px;">
+                        <i data-lucide="map" size="20"></i>
+                        <span>Ver local na lista de apoio</span>
                     </button>
                 </div>
             </div>
@@ -421,9 +421,6 @@
                     if (!isLoggedIn) {
                         e.preventDefault();
                         window.location.href = 'login.html';
-                    } else if (el.classList.contains('btn-help-center')) {
-                        e.preventDefault();
-                        window.location.href = 'apoio.html';
                     }
                 });
 
