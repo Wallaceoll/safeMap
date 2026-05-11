@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,58 +10,19 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/detalhes.css">
 </head>
+
 <body>
     <div class="app-container">
-        <header class="app-header" style="background-color: var(--white); border-bottom: 1px solid #F3F4F6;">
+        <header class="app-header">
             <button class="back-btn" onclick="history.back()"><i data-lucide="arrow-left" size="24"></i></button>
-            <h1 style="font-size: 18px; font-weight: 700; color: #111827;">Detalhes do Relato</h1>
-            <div style="width: 40px;"></div>
+            <h1>Detalhes do Relato</h1>
+            <p>Confira o que foi relatado neste local</p>
         </header>
 
-        <main class="detail-container">
-            <div class="report-header-info">
-                <span class="type-badge">Agressão Física</span>
-                <span style="font-size: 13px; color: #9CA3AF; margin-left: auto;">Há 2 horas</span>
-            </div>
-
-            <div class="report-card">
-                <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 8px;">Ocorrência na Av. Paulista</h2>
-                <p class="report-description">
-                    Fui abordado de forma agressiva próximo ao vão do MASP. O indivíduo estava visivelmente alterado e proferiu insultos homofóbicos seguidos de empurrões. Outras pessoas intervieram e consegui me afastar em segurança.
-                </p>
-
-                <div class="report-meta">
-                    <div class="meta-item">
-                        <i data-lucide="map-pin" size="18"></i>
-                        <span>Av. Paulista, 1578 - Bela Vista</span>
-                    </div>
-                    <div class="meta-item">
-                        <i data-lucide="calendar" size="18"></i>
-                        <span>10 de Maio, 2026 às 22:45</span>
-                    </div>
-                    <div class="meta-item">
-                        <i data-lucide="shield-check" size="18" style="color: #10B981;"></i>
-                        <span style="color: #10B981; font-weight: 600;">Verificado pela comunidade</span>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="evidence-title">Evidências e Fotos</h3>
-                <div class="evidence-grid">
-                    <div class="evidence-item"><i data-lucide="image" size="24"></i></div>
-                    <div class="evidence-item"><i data-lucide="image" size="24"></i></div>
-                </div>
-            </div>
-
-            <button class="btn-help-center" style="margin-top: auto; background-color: #FEE2E2; color: #EF4444; box-shadow: none;">
-                <i data-lucide="alert-octagon" size="20"></i>
-                <span>Denunciar como falso</span>
-            </button>
-        </main>
+        <main class="detail-container" id="reports-list"></main>
 
         <nav class="bottom-nav">
-            <a href="index.html" class="nav-item active">
+            <a href="index.html" class="nav-item">
                 <div class="nav-icon-wrapper"><i data-lucide="map-pin"></i></div>
                 <span>Mapa</span>
             </a>
@@ -74,6 +36,96 @@
             </a>
         </nav>
     </div>
-    <script>lucide.createIcons();</script>
+
+    <script>
+        function renderReports() {
+            const container = document.getElementById('reports-list');
+            const rawData = localStorage.getItem('currentDetailReports');
+
+            if (!rawData) {
+                container.innerHTML = '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; color:#9CA3AF;"><i data-lucide="info" size="48" style="margin-bottom:16px; opacity:0.5;"></i><p>Nenhum detalhe encontrado.</p></div>';
+                lucide.createIcons();
+                return;
+            }
+
+            let reports = JSON.parse(rawData);
+            if (!Array.isArray(reports)) reports = [reports];
+
+            reports.reverse();
+
+            container.innerHTML = '';
+
+            const scrollContent = document.createElement('div');
+            scrollContent.style.paddingBottom = '40px';
+
+            reports.forEach((report, index) => {
+                const card = document.createElement('div');
+                card.className = 'report-card';
+
+                const typeLabel = report.typeName || "Ocorrência";
+
+                let timeAgo = 'Recente';
+                let dateFull = 'Data não informada';
+                if (report.date) {
+                    const now = new Date();
+                    const reportDate = new Date(report.date);
+                    const diffMs = now - reportDate;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMins / 60);
+
+                    if (diffHours > 0) timeAgo = `Há ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+                    else if (diffMins > 0) timeAgo = `Há ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}`;
+                    else timeAgo = 'Agora mesmo';
+
+                    dateFull = reportDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+                    dateFull += ` às ${reportDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                }
+
+                const description = report.description && report.description.trim() !== ""
+                    ? report.description
+                    : "O usuário preferiu não descrever o ocorrido.";
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="type-badge">${typeLabel}</span>
+                        <span class="time-ago">${timeAgo}</span>
+                    </div>
+
+                    <h2 class="report-title">Ocorrência em ${report.address}</h2>
+                    
+                    <p class="report-description">${description}</p>
+
+                    <div class="report-meta">
+                        <div class="meta-item">
+                            <div class="meta-icon-wrapper">
+                                <i data-lucide="map-pin" size="18"></i>
+                            </div>
+                            <span>${report.address}</span>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-icon-wrapper">
+                                <i data-lucide="calendar" size="18"></i>
+                            </div>
+                            <span>${dateFull}</span>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-icon-wrapper">
+                                <i data-lucide="users" size="18"></i>
+                            </div>
+                            <span>Público afetado: ${report.targetGroup === 'women' ? 'Mulheres' : 'LGBTQ+'}</span>
+                        </div>
+                    </div>
+                `;
+                scrollContent.appendChild(card);
+            });
+
+            container.appendChild(scrollContent);
+
+            lucide.createIcons();
+        }
+
+        renderReports();
+    </script>
 </body>
+
 </html>

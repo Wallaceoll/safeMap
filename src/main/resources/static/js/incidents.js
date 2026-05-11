@@ -1,6 +1,4 @@
-/**
- * Renderização de incidentes estáticos e relatados pelo usuário via Leaflet
- */
+
 
 
 const incidentLayer = L.markerClusterGroup({
@@ -50,8 +48,15 @@ function loadIncidents() {
 
         groupedReports[key] = {
             ...incident,
+            typeName: incident.type === 'danger' ? 'Alto Risco' : 'Aviso',
             womenReports: wReports,
-            lgbtReports: lReports
+            lgbtReports: lReports,
+            allReports: [{
+                ...incident,
+                typeName: incident.type === 'danger' ? 'Alto Risco' : 'Aviso',
+                targetGroup: 'women',
+                date: new Date().toISOString()
+            }]
         };
     });
 
@@ -65,17 +70,24 @@ function loadIncidents() {
                 lat: parseFloat(report.lat),
                 lng: parseFloat(report.lng),
                 type: report.type || 'warning',
+                typeName: report.typeName || (report.type === 'danger' ? 'Alto Risco' : 'Aviso'),
                 address: report.address || 'Localização relatada',
                 district: report.district || 'São Paulo',
                 reports: 1,
                 womenReports: report.targetGroup === 'women' ? 1 : 0,
-                lgbtReports: report.targetGroup === 'lgbt' ? 1 : 0
+                lgbtReports: report.targetGroup === 'lgbt' ? 1 : 0,
+                allReports: [report]
             };
         } else {
             groupedReports[key].reports++;
             if (report.targetGroup === 'women') groupedReports[key].womenReports++;
             if (report.targetGroup === 'lgbt') groupedReports[key].lgbtReports++;
-            if (report.type === 'danger') groupedReports[key].type = 'danger';
+            if (report.type === 'danger') {
+                groupedReports[key].type = 'danger';
+                groupedReports[key].typeName = report.typeName || 'Alto Risco';
+            }
+            if (!groupedReports[key].allReports) groupedReports[key].allReports = [];
+            groupedReports[key].allReports.push(report);
         }
     });
 
@@ -185,20 +197,49 @@ window.openIncidentDetails = async function (data) {
     riskRows[2].querySelector('.level-item').innerHTML = getRiskLevel(sumRisk);
 
     if (reportCountSpan) {
-        reportCountSpan.textContent = `${data.relevantReports} relatos recentes`;
+        const count = data.relevantReports || 0;
+        const pluralText = count === 1 ? 'relato recente' : 'relatos recentes';
+        reportCountSpan.textContent = `${count} ${pluralText}`;
+
+        const reportRow = reportCountSpan.parentElement.parentElement;
+        if (reportRow) {
+            const navigateToAll = (e) => {
+                if (e) e.stopPropagation();
+                const reportsToShow = data.allReports || [data];
+                localStorage.setItem('currentDetailReports', JSON.stringify(reportsToShow));
+                window.location.href = 'detalhes-relato.html';
+            };
+
+            reportRow.style.cursor = 'pointer';
+            reportRow.onclick = navigateToAll;
+
+            const arrow = reportRow.querySelector('[data-lucide="chevron-right"], .lucide-chevron-right, svg.lucide-chevron-right');
+            if (arrow) {
+                arrow.style.cursor = 'pointer';
+                arrow.onclick = navigateToAll;
+            }
+        }
+    }
+
+    const detailsBtn = incidentBlock.querySelector('.btn-help-center');
+    if (detailsBtn) {
+        detailsBtn.onclick = (e) => {
+            e.preventDefault();
+            const lastReport = data.allReports ? data.allReports[data.allReports.length - 1] : data;
+            localStorage.setItem('currentDetailReports', JSON.stringify([lastReport]));
+            window.location.href = 'detalhes-relato.html';
+        };
     }
 
     incidentBlock.style.display = 'block';
     supportBlock.style.display = 'none';
     detailsOverlay.classList.add('active');
 
-    if (window.safeMap.getAddressFromCoords && (!data.address || !data.district)) {
+    if (window.safeMap.getAddressFromCoords && (!data.address || !data.district || data.address === 'Localização relatada')) {
         const geoData = await window.safeMap.getAddressFromCoords(data.lat, data.lng);
         if (geoData) {
             title.textContent = geoData.street;
             descP.textContent = geoData.district ? `${geoData.district} — São Paulo, SP` : 'São Paulo, SP';
-        } else if (!data.address) {
-            title.textContent = 'Localização Desconhecida';
         }
     }
 };

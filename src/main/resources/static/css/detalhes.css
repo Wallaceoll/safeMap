@@ -1,77 +1,165 @@
-.detail-container {
-    padding: 24px;
+:root {
+    --primary: #5A36A3;
+    --bg-light: #FDFBFF; /* Cor idêntica à tela de relatos */
+    --text-main: #1E293B;
+    --text-muted: #64748B;
+    --white: #FFFFFF;
+}
+
+body {
+    background-color: var(--bg-light);
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.app-container {
+    background-color: var(--bg-light);
+    width: 100%;
+    max-width: 420px;
+    height: 100vh;
+    position: relative;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    overflow: hidden;
 }
 
-.report-header-info {
+.app-header {
+    background-color: transparent;
+    padding: 48px 20px 24px 20px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.app-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.app-header p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 6px 0 0 0;
+}
+
+.back-btn {
+    position: absolute;
+    left: 20px;
+    top: 50px;
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0;
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 8px;
 }
 
-.type-badge {
-    padding: 8px 16px;
-    background-color: #FEE2E2;
-    color: #EF4444;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 700;
+.detail-container {
+    flex: 1;
+    overflow-y: scroll; /* Força o scrollbar como no print */
+    padding: 0 20px 100px 20px;
+    scrollbar-width: thin;
 }
 
 .report-card {
-    background-color: var(--white);
+    background: var(--white);
     border-radius: 20px;
     padding: 24px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-    border: 1px solid #F3F4F6;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.type-badge {
+    background-color: #FEE2E2;
+    color: #EF4444;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.time-ago {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.report-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+}
+
+.report-description {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 24px;
 }
 
 .report-meta {
+    border-top: 1px solid #F1F5F9;
+    padding-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #F3F4F6;
 }
 
 .meta-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    color: #6B7280;
     font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
-.report-description {
-    font-size: 15px;
-    color: #374151;
-    line-height: 1.6;
-    margin-top: 16px;
-}
-
-.evidence-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 12px;
-}
-
-.evidence-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.evidence-item {
-    aspect-ratio: 1;
-    background-color: #F3F4F6;
-    border-radius: 12px;
+.meta-icon-wrapper {
+    color: #94A3B8;
     display: flex;
     align-items: center;
-    justify-content: center;
-    color: #9CA3AF;
+}
+
+.bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 16px 0;
+    border-top: 1px solid #F1F5F9;
+    z-index: 100;
+}
+
+.nav-item {
+    text-decoration: none;
+    color: #94A3B8;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-item.active {
+    color: var(--primary);
 }
