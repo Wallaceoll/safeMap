@@ -123,10 +123,10 @@
                         const data = await response.json();
 
                         if (data.address) {
-                            const road = data.address.road || "Rua não identificada";
-                            const number = data.address.house_number || "S/N";
-                            const suburb = data.address.suburb || data.address.neighbourhood || "Bairro não identificado";
-                            const city = data.address.city || data.address.town || "SP";
+                            const road = data.address.road || data.address.pedestrian || "Rua não identificada";
+                            const number = data.address.house_number || data.address.building || "S/N";
+                            const suburb = data.address.suburb || data.address.neighbourhood || data.address.city_district || "Bairro não identificado";
+                            const city = data.address.city || data.address.town || data.address.village || "SP";
                             const formattedAddress = `${road} - ${number} - ${suburb} - ${city}`;
                             locInput.value = formattedAddress;
                         } else {
