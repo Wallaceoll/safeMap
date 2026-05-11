@@ -40,7 +40,8 @@
                     <div class="category-chip active" data-type="incidents">
                         <div class="chip-icon-box"
                             style="background: linear-gradient(180deg, #FF0000 0%, #FF7A00 20%, #FFE600 40%, #14FF00 60%, #00A3FF 80%, #0500FF 100%); color: white;">
-                            <i data-lucide="flag" size="14"></i></div>
+                            <i data-lucide="flag" size="14"></i>
+                        </div>
                         <span>LGBT+</span>
                     </div>
                     <div class="category-chip active" data-type="support">
@@ -106,7 +107,8 @@
                         <div class="row-label">
                             <div class="chip-icon-box"
                                 style="background: linear-gradient(180deg, #FF0000 0%, #FF7A00 20%, #FFE600 40%, #14FF00 60%, #00A3FF 80%, #0500FF 100%); color: white;">
-                                <i data-lucide="flag" size="14"></i></div>
+                                <i data-lucide="flag" size="14"></i>
+                            </div>
                             <span>LGBT+</span>
                         </div>
                         <div class="risk-levels">
@@ -128,7 +130,8 @@
                                 <i data-lucide="venus" size="20" style="color: var(--primary-purple);"></i>
                                 <div class="chip-icon-box"
                                     style="background: linear-gradient(180deg, #FF0000 0%, #FF7A00 20%, #FFE600 40%, #14FF00 60%, #00A3FF 80%, #0500FF 100%); color: white;">
-                                    <i data-lucide="flag" size="14"></i></div>
+                                    <i data-lucide="flag" size="14"></i>
+                                </div>
                             </div>
                             <span style="margin-left: 4px;">Ambos</span>
                         </div>
@@ -185,7 +188,8 @@
                             <div class="row-label">
                                 <div class="chip-icon-box"
                                     style="background: linear-gradient(180deg, #FF0000 0%, #FF7A00 20%, #FFE600 40%, #14FF00 60%, #00A3FF 80%, #0500FF 100%); color: white;">
-                                    <i data-lucide="flag" size="14"></i></div>
+                                    <i data-lucide="flag" size="14"></i>
+                                </div>
                                 <span style="font-size: 14px; font-weight: 500; margin-left: 8px;">Risco para
                                     LGBTQ+</span>
                             </div>
@@ -199,7 +203,8 @@
                                     <i data-lucide="venus" size="20" style="color: var(--primary-purple);"></i>
                                     <div class="chip-icon-box"
                                         style="background: linear-gradient(180deg, #FF0000 0%, #FF7A00 20%, #FFE600 40%, #14FF00 60%, #00A3FF 80%, #0500FF 100%); color: white;">
-                                        <i data-lucide="flag" size="14"></i></div>
+                                        <i data-lucide="flag" size="14"></i>
+                                    </div>
                                 </div>
                                 <span style="font-size: 14px; font-weight: 500; margin-left: 4px;">Risco para
                                     ambos</span>
@@ -286,7 +291,7 @@
             </div>
         </div>
     </div>
-    <!-- Scripts Modulares -->
+
     <script src="js/map.js?v=1.1"></script>
     <script src="js/location.js?v=1.1"></script>
     <script src="js/overpass.js?v=1.1"></script>
@@ -307,7 +312,7 @@
         document.getElementById('btn-legend-trigger')?.addEventListener('click', () => {
             const womenActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(1).active');
             const lgbtActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(2).active');
-            
+
             const legendRows = legendOverlay.querySelectorAll('.legend-row');
             if (legendRows.length >= 3) {
                 legendRows[0].style.display = womenActive ? 'flex' : 'none';
@@ -369,7 +374,6 @@
                     searchInput.placeholder = "Buscando...";
                     searchInput.value = '';
 
-                    // Integração real com Geocoding do OpenStreetMap (Nominatim)
                     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=1`, {
                         headers: {
                             'Accept-Language': 'pt-BR',
@@ -385,10 +389,8 @@
                                 const lat = parseFloat(data[0].lat);
                                 const lon = parseFloat(data[0].lon);
 
-                                // Move o mapa suavemente até o local pesquisado
                                 window.safeMap.map.flyTo([lat, lon], 16, { animate: true, duration: 1.5 });
 
-                                // Atualiza a posição do usuário ("boneco")
                                 if (window.safeMap.updateUserLocation) {
                                     window.safeMap.updateUserLocation(lat, lon);
                                 }

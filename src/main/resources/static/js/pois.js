@@ -54,7 +54,7 @@ function createSupportIcon(iconName) {
 }
 
 const icons = {
-    hospital: createSupportIcon('cross'), // Usando ícone genérico pra testar (cross, plus, etc)
+    hospital: createSupportIcon('cross'),
     police: createSupportIcon('shield'),
     shelter: createSupportIcon('home')
 };
@@ -114,7 +114,6 @@ async function loadPOIs() {
                     if (geoData) {
                         let finalStreet = geoData.street;
                         
-                        // Se o Nominatim não trouxe o número, mas temos ele nos dados originais do OSM, forçamos a inserção.
                         if (!finalStreet.includes(',') && tags['addr:housenumber']) {
                             finalStreet += `, ${tags['addr:housenumber']}`;
                         }
@@ -134,7 +133,6 @@ async function loadPOIs() {
     map.addLayer(policeLayer);
     map.addLayer(shelterLayer);
     
-    // Força a renderização dos ícones caso o cluster seja expandido/retraído
     hospitalLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
     policeLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
     shelterLayer.on('animationend', () => window.lucide && window.lucide.createIcons());

@@ -79,7 +79,7 @@ function loadIncidents() {
     map.addLayer(incidentLayer);
 }
 
-window.safeMap.renderIncidents = function() {
+window.safeMap.renderIncidents = function () {
     incidentLayer.clearLayers();
 
     const womenActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(1).active');
@@ -92,8 +92,8 @@ window.safeMap.renderIncidents = function() {
         let lgbtR = report.lgbtReports || 0;
 
         if (womenActive && lgbtActive) {
-            relevantReports = womenR + lgbtR; // Soma para o texto do cabeçalho
-            riskValueForColor = womenR + lgbtR; // Usa a soma conforme solicitado
+            relevantReports = womenR + lgbtR;
+            riskValueForColor = womenR + lgbtR;
         } else if (womenActive) {
             relevantReports = womenR;
             riskValueForColor = womenR;
@@ -125,7 +125,7 @@ window.safeMap.renderIncidents = function() {
     incidentLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
 };
 
-window.openIncidentDetails = async function(data) {
+window.openIncidentDetails = async function (data) {
     const incidentBlock = document.getElementById('incident-details');
     const supportBlock = document.getElementById('support-details');
     const detailsOverlay = document.getElementById('details-overlay');
@@ -156,20 +156,17 @@ window.openIncidentDetails = async function(data) {
         if (count >= 8) levelText = '<div class="dot red"></div> Alto';
         else if (count >= 3) levelText = '<div class="dot yellow"></div> Médio';
         else levelText = '<div class="dot green"></div> Baixo';
-        
+
         return `${levelText} <span style="font-size: 12px; color: #6B7280; margin-left: 8px;">(${count} relatos)</span>`;
     }
 
     title.textContent = data.address || 'Buscando endereço...';
     descP.textContent = data.district ? `${data.district} — São Paulo, SP` : 'São Paulo, SP';
 
-    // Risco para Mulheres
     riskRows[0].querySelector('.level-item').innerHTML = getRiskLevel(data.womenReports || 0);
-    
-    // Risco para LGBT+
+
     riskRows[1].querySelector('.level-item').innerHTML = getRiskLevel(data.lgbtReports || 0);
-    
-    // Risco para Ambos (Utilizamos a soma conforme regra de negócio solicitada)
+
     const sumRisk = (data.womenReports || 0) + (data.lgbtReports || 0);
     riskRows[2].querySelector('.level-item').innerHTML = getRiskLevel(sumRisk);
 
@@ -181,7 +178,6 @@ window.openIncidentDetails = async function(data) {
     supportBlock.style.display = 'none';
     detailsOverlay.classList.add('active');
 
-    // Reverse geocoding for precise address if missing or to standardize user reports
     if (window.safeMap.getAddressFromCoords && (!data.address || !data.district)) {
         const geoData = await window.safeMap.getAddressFromCoords(data.lat, data.lng);
         if (geoData) {

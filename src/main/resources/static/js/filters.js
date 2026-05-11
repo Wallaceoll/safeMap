@@ -16,7 +16,6 @@ document.querySelectorAll('.category-chip').forEach(chip => {
             if (!map.hasLayer(incidentLayer)) {
                 map.addLayer(incidentLayer);
             }
-            // Força o recálculo dinâmico (cores e quantidades)
             if (window.safeMap.renderIncidents) window.safeMap.renderIncidents();
         } else {
             if (map.hasLayer(incidentLayer)) {

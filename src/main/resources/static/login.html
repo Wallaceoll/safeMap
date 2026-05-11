@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
+
 <body>
     <div class="app-container fade-in">
         <header class="app-header">
@@ -46,7 +48,9 @@
             </form>
 
             <div style="text-align: center; margin-bottom: 32px;">
-                <p style="font-size: 14px; color: #6B7280;">Não tem uma conta? <a href="cadastro.html" style="color: var(--primary-purple); font-weight: 700; text-decoration: none;">Cadastre-se</a></p>
+                <p style="font-size: 14px; color: #6B7280;">Não tem uma conta? <a href="cadastro.html"
+                        style="color: var(--primary-purple); font-weight: 700; text-decoration: none;">Cadastre-se</a>
+                </p>
             </div>
 
             <div class="divider">ou continue como</div>
@@ -101,7 +105,7 @@
             const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
             const rememberMe = document.getElementById('remember-me');
-            
+
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
@@ -114,7 +118,7 @@
                 alert('Por favor, insira um e-mail válido (ex: usuario@dominio.com).');
                 return;
             }
-            
+
             if (rememberMe.checked) {
                 localStorage.setItem('rememberedEmail', email);
                 localStorage.setItem('rememberMe', 'true');
@@ -122,12 +126,11 @@
                 localStorage.removeItem('rememberedEmail');
                 localStorage.removeItem('rememberMe');
             }
-            
+
             localStorage.setItem('isLoggedIn', 'true');
             location.href = 'index.html';
         }
 
-        // Auto-fill email if remembered
         const savedEmail = localStorage.getItem('rememberedEmail');
         const wasRemembered = localStorage.getItem('rememberMe') === 'true';
         if (savedEmail && wasRemembered) {
@@ -136,4 +139,5 @@
         }
     </script>
 </body>
+
 </html>
