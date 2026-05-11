@@ -57,8 +57,10 @@
                 <div class="form-group">
                     <label>Local da ocorrência</label>
                     <div class="input-wrapper">
-                        <input type="text" class="input-control" id="report-loc" value="Localização atual">
-                        <i data-lucide="locate-fixed" class="input-icon-right" size="20"></i>
+                        <input type="text" class="input-control" id="report-loc"
+                            placeholder="Digite o local ou use o ícone ao lado">
+                        <i data-lucide="locate-fixed" class="input-icon-right" size="20" style="cursor: pointer;"
+                            onclick="getCurrentLocation()"></i>
                     </div>
                 </div>
 
@@ -105,6 +107,45 @@
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         document.getElementById('report-datetime').value = now.toISOString().slice(0, 16);
+
+        async function getCurrentLocation() {
+            const locInput = document.getElementById('report-loc');
+            const originalValue = locInput.value;
+            locInput.value = "Buscando endereço...";
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+                        const data = await response.json();
+
+                        if (data.address) {
+                            const road = data.address.road || "Rua não identificada";
+                            const number = data.address.house_number || "S/N";
+                            const suburb = data.address.suburb || data.address.neighbourhood || "Bairro não identificado";
+                            const city = data.address.city || data.address.town || "SP";
+                            const formattedAddress = `${road} - ${number} - ${suburb} - ${city}`;
+                            locInput.value = formattedAddress;
+                        } else {
+                            locInput.value = originalValue;
+                            alert("Não foi possível encontrar o endereço exato.");
+                        }
+                    } catch (error) {
+                        locInput.value = originalValue;
+                        console.error(error);
+                        alert("Erro ao buscar endereço. Verifique sua conexão.");
+                    }
+                }, (error) => {
+                    locInput.value = originalValue;
+                    alert("Por favor, permita o acesso à localização no seu navegador.");
+                });
+            } else {
+                alert("Geolocalização não é suportada pelo seu navegador.");
+            }
+        }
 
         function handleReport(e) {
             e.preventDefault();
