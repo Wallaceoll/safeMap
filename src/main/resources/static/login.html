@@ -127,7 +127,7 @@
             const savedData = JSON.parse(localStorage.getItem('userData'));
 
             if (!savedData || email !== savedData.email || password !== savedData.password) {
-                alert('Senha incorreta, tente novamente ou clique em esqueci minha senha');
+                alert('E-mail ou senha incorretos. Por favor, verifique seus dados e tente novamente');
                 return;
             }
 
