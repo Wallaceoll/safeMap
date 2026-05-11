@@ -1,0 +1,152 @@
+/**
+ * Gerenciamento de POIs do Overpass, Clusters e Ícones Customizados
+ */
+
+const hospitalLayer = L.markerClusterGroup({
+    clusterPane: 'support',
+    maxClusterRadius: 50,
+    iconCreateFunction: function (cluster) {
+        return L.divIcon({
+            html: `<div style="background-color: #0EA5E9; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${cluster.getChildCount()}</div>`,
+            className: 'custom-cluster-icon',
+            iconSize: L.point(30, 30)
+        });
+    }
+});
+
+const policeLayer = L.markerClusterGroup({
+    clusterPane: 'support',
+    maxClusterRadius: 50,
+    iconCreateFunction: function (cluster) {
+        return L.divIcon({
+            html: `<div style="background-color: #0EA5E9; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${cluster.getChildCount()}</div>`,
+            className: 'custom-cluster-icon',
+            iconSize: L.point(30, 30)
+        });
+    }
+});
+
+const shelterLayer = L.markerClusterGroup({
+    clusterPane: 'support',
+    maxClusterRadius: 50,
+    iconCreateFunction: function (cluster) {
+        return L.divIcon({
+            html: `<div style="background-color: #0EA5E9; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${cluster.getChildCount()}</div>`,
+            className: 'custom-cluster-icon',
+            iconSize: L.point(30, 30)
+        });
+    }
+});
+
+function createSupportIcon(iconName) {
+    return L.divIcon({
+        className: 'custom-support-marker',
+        html: `
+            <div class="support-shield" style="position: relative; pointer-events: none;">
+                <div class="category-chip" style="padding: 0; border-radius: 50%; width: 34px; height: 34px; justify-content: center; background-color: #0EA5E9; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <i data-lucide="${iconName}" size="18" style="color: white;"></i>
+                </div>
+            </div>
+        `,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17]
+    });
+}
+
+const icons = {
+    hospital: createSupportIcon('cross'), // Usando ícone genérico pra testar (cross, plus, etc)
+    police: createSupportIcon('shield'),
+    shelter: createSupportIcon('home')
+};
+
+async function loadPOIs() {
+    const pois = await window.safeMap.fetchOverpassPOIs();
+
+    pois.forEach(node => {
+        const latlng = [node.lat, node.lon];
+        const tags = node.tags;
+
+        let layerToAdd = null;
+        let iconToUse = null;
+        let typeName = "";
+
+        if (tags.amenity === 'hospital') {
+            layerToAdd = hospitalLayer;
+            iconToUse = icons.hospital;
+            typeName = "Hospital";
+        } else if (tags.amenity === 'police') {
+            layerToAdd = policeLayer;
+            iconToUse = icons.police;
+            typeName = "Delegacia";
+        } else if (tags.social_facility || tags.amenity === 'social_facility') {
+            layerToAdd = shelterLayer;
+            iconToUse = icons.shelter;
+            typeName = "Acolhimento Social";
+        }
+
+        if (layerToAdd) {
+            const marker = L.marker(latlng, {
+                icon: iconToUse,
+                pane: 'support'
+            });
+
+            marker.on('click', async () => {
+                const supportBlock = document.getElementById('support-details');
+                const incidentBlock = document.getElementById('incident-details');
+                const detailsOverlay = document.getElementById('details-overlay');
+                const addressEl = document.getElementById('support-address');
+                
+                document.getElementById('support-name').textContent = tags.name || typeName;
+                
+                let fallbackAddress = [];
+                if (tags['addr:street']) fallbackAddress.push(tags['addr:street']);
+                if (tags['addr:housenumber']) fallbackAddress.push(tags['addr:housenumber']);
+                
+                addressEl.textContent = fallbackAddress.length > 0 ? fallbackAddress.join(', ') : 'Buscando endereço exato...';
+                document.getElementById('support-type').textContent = `Ponto de apoio: ${typeName}.`;
+
+                incidentBlock.style.display = 'none';
+                supportBlock.style.display = 'block';
+                detailsOverlay.classList.add('active');
+
+                if (window.safeMap.getAddressFromCoords) {
+                    const geoData = await window.safeMap.getAddressFromCoords(latlng[0], latlng[1]);
+                    if (geoData) {
+                        let finalStreet = geoData.street;
+                        
+                        // Se o Nominatim não trouxe o número, mas temos ele nos dados originais do OSM, forçamos a inserção.
+                        if (!finalStreet.includes(',') && tags['addr:housenumber']) {
+                            finalStreet += `, ${tags['addr:housenumber']}`;
+                        }
+                        
+                        addressEl.textContent = finalStreet + (geoData.district ? ` - ${geoData.district}` : '');
+                    } else if (fallbackAddress.length === 0) {
+                        addressEl.textContent = 'Endereço não informado';
+                    }
+                }
+            });
+
+            layerToAdd.addLayer(marker);
+        }
+    });
+
+    map.addLayer(hospitalLayer);
+    map.addLayer(policeLayer);
+    map.addLayer(shelterLayer);
+    
+    // Força a renderização dos ícones caso o cluster seja expandido/retraído
+    hospitalLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
+    policeLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
+    shelterLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
+    
+    console.log(`POIs carregados: Hospitais: ${hospitalLayer.getLayers().length}, Polícia: ${policeLayer.getLayers().length}, Acolhimento: ${shelterLayer.getLayers().length}`);
+    
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
+
+loadPOIs();
+
+window.safeMap.layers = window.safeMap.layers || {};
+window.safeMap.layers.support = [hospitalLayer, policeLayer, shelterLayer];

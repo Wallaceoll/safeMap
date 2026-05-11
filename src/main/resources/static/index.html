@@ -5,11 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mapa - safeMap</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/index.css">
-    <link rel="stylesheet" href="css/tutorial.css">
+    <link rel="stylesheet" href="css/base.css?v=1.1">
+    <link rel="stylesheet" href="css/index.css?v=1.1">
+    <link rel="stylesheet" href="css/tutorial.css?v=1.1">
 </head>
 
 <body>
@@ -36,8 +44,9 @@
                         <span>LGBT+</span>
                     </div>
                     <div class="category-chip active" data-type="support">
-                        <div class="chip-icon-box" style="background-color: var(--support-teal); color: white;"><i
-                                data-lucide="shield-plus" size="18"></i></div>
+                        <div class="chip-icon-box">
+                            <i data-lucide="shield-plus" size="18"></i>
+                        </div>
                         <span>Locais de apoio</span>
                     </div>
                 </div>
@@ -53,63 +62,7 @@
             <div class="close-btn"><i data-lucide="x" size="20"></i></div>
         </div>
 
-        <div class="map-bg" id="map-viewport">
-            <div class="map-content" id="map-content">
-                <div class="map-blocks"></div>
-
-                <!-- Ruas Existentes -->
-                <div class="map-street"
-                    style="width: 100%; height: 35px; top: 1020px; left: 0; transform: rotate(-15deg);"></div>
-                <div class="map-street"
-                    style="width: 100%; height: 35px; top: 1220px; left: 0; transform: rotate(-15deg);"></div>
-                <div class="map-street"
-                    style="width: 35px; height: 100%; top: 0; left: 1250px; transform: rotate(-10deg);"></div>
-
-                <!-- Novas Ruas e Áreas -->
-                <div class="map-street"
-                    style="width: 100%; height: 35px; top: 720px; left: 0; transform: rotate(5deg);"></div>
-                <!-- Marginal Pinheiros Simulação -->
-                <div class="map-street"
-                    style="width: 35px; height: 100%; top: 0; left: 600px; transform: rotate(15deg);"></div>
-                <!-- Av. Rebouças -->
-                <div class="map-street"
-                    style="width: 100%; height: 35px; top: 1600px; left: 0; transform: rotate(-10deg);"></div>
-                <!-- Av. dos Bandeirantes -->
-
-                <div class="map-label" style="top: 1055px; left: 1060px; transform: rotate(-15deg);">Av. Brigadeiro
-                    Faria Lima</div>
-                <div class="map-label" style="top: 1250px; left: 1240px; transform: rotate(-15deg);">Av. Paulista</div>
-                <div class="map-label" style="top: 1550px; left: 1165px; transform: rotate(80deg);">R. Vergueiro</div>
-
-                <div class="map-label green" style="top: 1350px; left: 1150px; width: 100px;">Parque Ibirapuera</div>
-
-                <!-- Novos Bairros -->
-                <div class="map-label"
-                    style="top: 750px; left: 550px; font-weight: 700; color: #475569; font-size: 16px;">PINHEIROS</div>
-                <div class="map-label"
-                    style="top: 1650px; left: 1400px; font-weight: 700; color: #475569; font-size: 16px;">MOEMA</div>
-                <div class="map-label"
-                    style="top: 850px; left: 1300px; font-weight: 700; color: #475569; font-size: 16px;">JARDINS</div>
-                <div class="map-label"
-                    style="top: 600px; left: 800px; font-weight: 700; color: #475569; font-size: 16px;">VILA MADALENA
-                </div>
-
-                <!-- Os incidentes serão carregados via JavaScript para permitir agregação -->
-
-
-                <div class="support-shield" style="top: 1120px; left: 1180px;">
-                    <div class="category-chip"
-                        style="padding: 0; border-radius: 50%; width: 34px; height: 34px; justify-content: center; background-color: #0D9488;">
-                        <i data-lucide="shield-plus" size="18" style="color: white;"></i>
-                    </div>
-                </div>
-
-                <div class="user-location" style="top: 1250px; left: 1200px;">
-                    <div class="location-pulse"></div>
-                    <div class="location-dot"></div>
-                </div>
-            </div>
-        </div>
+        <div class="map-bg" id="map-viewport" style="z-index: 0;"></div>
 
         <div class="bottom-actions">
             <div class="float-stack">
@@ -276,8 +229,8 @@
                 <div id="support-details" style="display: none;">
                     <div class="legend-header">
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            <div class="incident-icon-small" style="background-color: #F0FDFA;"><i
-                                    data-lucide="shield-plus" size="20" style="color: #0D9488;"></i></div>
+                            <div class="incident-icon-small" style="background-color: #E0F2FE;"><i
+                                    data-lucide="shield-plus" size="20" style="color: #0EA5E9;"></i></div>
                             <div>
                                 <h2 id="support-name" style="margin: 0; font-size: 16px;">Centro de Apoio à Mulher</h2>
                                 <p id="support-address" style="font-size: 13px; color: #6B7280; margin: 2px 0 0;">Rua
@@ -333,6 +286,15 @@
             </div>
         </div>
     </div>
+    <!-- Scripts Modulares -->
+    <script src="js/map.js?v=1.1"></script>
+    <script src="js/location.js?v=1.1"></script>
+    <script src="js/overpass.js?v=1.1"></script>
+    <script src="js/pois.js?v=1.1"></script>
+    <script src="js/incidents.js?v=1.1"></script>
+    <script src="js/filters.js?v=1.1"></script>
+    <script src="js/tutorial.js?v=1.1"></script>
+
     <script>
         lucide.createIcons();
 
@@ -342,7 +304,7 @@
         const incidentBlock = document.getElementById('incident-details');
         const supportBlock = document.getElementById('support-details');
 
-        document.getElementById('btn-legend-trigger').addEventListener('click', () => {
+        document.getElementById('btn-legend-trigger')?.addEventListener('click', () => {
             const womenActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(1).active');
             const lgbtActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(2).active');
             
@@ -354,157 +316,6 @@
             }
 
             legendOverlay.classList.add('active');
-        });
-
-        document.getElementById('btn-locate').addEventListener('click', () => {
-            userLocation.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
-            userLocation.style.top = '1250px';
-            userLocation.style.left = '1200px';
-
-            // Reset map zoom and position
-            currentZoom = 1;
-            mapContent.style.transform = `scale(${currentZoom})`;
-            mapContent.style.top = '-800px';
-            mapContent.style.left = '-1000px';
-
-            const feedback = document.createElement('div');
-            feedback.style.cssText = "position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 10000;";
-            feedback.textContent = "Centralizando sua posição...";
-            document.body.appendChild(feedback);
-            setTimeout(() => feedback.remove(), 2000);
-        });
-
-        // Interatividade do Mapa (Pan e Zoom)
-        const mapViewport = document.getElementById('map-viewport');
-        const mapContent = document.getElementById('map-content');
-        let isDragging = false;
-        let startX, startY;
-        let mapLeft = -1000;
-        let mapTop = -800;
-        let currentZoom = 1;
-
-        mapViewport.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - mapLeft;
-            startY = e.clientY - mapTop;
-            mapContent.style.transition = 'none';
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            mapLeft = e.clientX - startX;
-            mapTop = e.clientY - startY;
-
-            mapContent.style.left = `${mapLeft}px`;
-            mapContent.style.top = `${mapTop}px`;
-        });
-
-        window.addEventListener('mouseup', () => {
-            isDragging = false;
-            mapContent.style.transition = 'transform 0.2s ease-out';
-        });
-
-        // Touch support
-        mapViewport.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            startX = e.touches[0].clientX - mapLeft;
-            startY = e.touches[0].clientY - mapTop;
-            mapContent.style.transition = 'none';
-        });
-
-        mapViewport.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            mapLeft = e.touches[0].clientX - startX;
-            mapTop = e.touches[0].clientY - startY;
-            mapContent.style.left = `${mapLeft}px`;
-            mapContent.style.top = `${mapTop}px`;
-        });
-
-        mapViewport.addEventListener('touchend', () => isDragging = false);
-
-        function applyZoom(newZoom) {
-            currentZoom = Math.round(newZoom * 100) / 100;
-            mapContent.style.transform = `scale(${currentZoom})`;
-        }
-
-
-        // Mouse wheel zoom
-        mapViewport.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const delta = e.deltaY > 0 ? -0.1 : 0.1;
-            const newZoom = currentZoom + delta;
-            if (newZoom >= 0.15 && newZoom <= 3) {
-                applyZoom(newZoom);
-            }
-        }, { passive: false });
-
-        function openIncidentDetails(data) {
-            const isWarning = data.type === 'warning';
-            const iconContainer = incidentBlock.querySelector('.incident-icon-small');
-            const title = incidentBlock.querySelector('h2');
-            const riskRows = incidentBlock.querySelectorAll('.legend-row');
-            const iconSvg = iconContainer.querySelector('svg');
-            const reportCountSpan = incidentBlock.querySelector('span[style*="color: #111827;"]');
-
-            const womenActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(1).active');
-            const lgbtActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(2).active');
-
-            riskRows.forEach(row => row.style.display = 'none');
-
-            if (womenActive && lgbtActive) {
-                riskRows[0].style.display = 'flex';
-                riskRows[1].style.display = 'flex';
-                riskRows[2].style.display = 'flex';
-            } else if (womenActive) {
-                riskRows[0].style.display = 'flex';
-            } else if (lgbtActive) {
-                riskRows[1].style.display = 'flex';
-            } else {
-                riskRows.forEach(row => row.style.display = 'flex');
-            }
-
-            function getRiskLevel(count) {
-                if (count >= 8) return '<div class="dot red"></div> Alto';
-                if (count >= 3) return '<div class="dot yellow"></div> Médio';
-                return '<div class="dot green"></div> Baixo';
-            }
-
-            title.textContent = data.address || 'Localização Desconhecida';
-            incidentBlock.querySelector('p').textContent = data.district ? `${data.district} — São Paulo, SP` : 'São Paulo, SP';
-
-            riskRows[0].querySelector('.level-item').innerHTML = getRiskLevel(data.womenReports || 0);
-            riskRows[1].querySelector('.level-item').innerHTML = getRiskLevel(data.lgbtReports || 0);
-            riskRows[2].querySelector('.level-item').innerHTML = getRiskLevel((data.womenReports || 0) + (data.lgbtReports || 0));
-
-            if (reportCountSpan) {
-                reportCountSpan.textContent = `${data.reports} relatos recentes`;
-            }
-
-            incidentBlock.style.display = 'block';
-            supportBlock.style.display = 'none';
-            detailsOverlay.classList.add('active');
-        }
-
-        document.querySelector('.map-bg').addEventListener('click', (e) => {
-            const marker = e.target.closest('.incident-marker');
-            const support = e.target.closest('.support-shield');
-
-            if (marker) {
-                const markerData = JSON.parse(marker.getAttribute('data-info') || '{}');
-                openIncidentDetails(markerData);
-            }
-
-            if (support) {
-                incidentBlock.style.display = 'none';
-                supportBlock.style.display = 'block';
-                detailsOverlay.classList.add('active');
-            }
-        });
-
-        document.querySelectorAll('.incident-marker, .support-shield').forEach(m => {
-            m.style.cursor = 'pointer';
-            m.style.pointerEvents = 'auto';
         });
 
         document.querySelectorAll('.legend-overlay, .close-details').forEach(el => {
@@ -541,20 +352,8 @@
                 if (visitorNotice) visitorNotice.style.display = 'none';
             });
         }
+
         const searchInput = document.getElementById('main-search-input');
-        const userLocation = document.querySelector('.user-location');
-
-        const mockLocations = {
-            'paulista': { top: '1250px', left: '1240px' },
-            'ibirapuera': { top: '1350px', left: '1150px' },
-            'faria lima': { top: '1055px', left: '1060px' },
-            'pinheiros': { top: '750px', left: '550px' },
-            'vergueiro': { top: '1550px', left: '1165px' },
-            'jardins': { top: '850px', left: '1300px' },
-            'moema': { top: '1650px', left: '1400px' },
-            'vila madalena': { top: '600px', left: '800px' }
-        };
-
         if (searchInput) {
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -562,42 +361,47 @@
                         window.location.href = 'login.html';
                         return;
                     }
+                    const query = searchInput.value.trim();
+                    if (!query) return;
 
-                    const query = searchInput.value.toLowerCase().trim();
-                    let target = null;
+                    searchInput.disabled = true;
+                    const originalPlaceholder = searchInput.placeholder;
+                    searchInput.placeholder = "Buscando...";
+                    searchInput.value = '';
 
-                    for (let key in mockLocations) {
-                        if (query.includes(key)) {
-                            target = mockLocations[key];
-                            break;
+                    // Integração real com Geocoding do OpenStreetMap (Nominatim)
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=1`, {
+                        headers: {
+                            'Accept-Language': 'pt-BR',
+                            'User-Agent': 'SafeMap/1.0'
                         }
-                    }
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            searchInput.disabled = false;
+                            searchInput.placeholder = originalPlaceholder;
 
-                    if (target) {
-                        userLocation.style.transition = 'all 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                        userLocation.style.top = target.top;
-                        userLocation.style.left = target.left;
+                            if (data && data.length > 0) {
+                                const lat = parseFloat(data[0].lat);
+                                const lon = parseFloat(data[0].lon);
 
-                        searchInput.blur();
+                                // Move o mapa suavemente até o local pesquisado
+                                window.safeMap.map.flyTo([lat, lon], 16, { animate: true, duration: 1.5 });
 
-                        const feedback = document.createElement('div');
-                        feedback.style.position = 'fixed';
-                        feedback.style.top = '100px';
-                        feedback.style.left = '50%';
-                        feedback.style.transform = 'translateX(-50%)';
-                        feedback.style.backgroundColor = 'rgba(0,0,0,0.8)';
-                        feedback.style.color = 'white';
-                        feedback.style.padding = '8px 16px';
-                        feedback.style.borderRadius = '20px';
-                        feedback.style.fontSize = '12px';
-                        feedback.style.zIndex = '10000';
-                        feedback.textContent = `Navegando para ${searchInput.value}...`;
-                        document.body.appendChild(feedback);
-
-                        setTimeout(() => feedback.remove(), 2000);
-                    } else {
-                        alert('Local não encontrado na simulação. Tente: Paulista, Ibirapuera ou Faria Lima.');
-                    }
+                                // Atualiza a posição do usuário ("boneco")
+                                if (window.safeMap.updateUserLocation) {
+                                    window.safeMap.updateUserLocation(lat, lon);
+                                }
+                            } else {
+                                alert('Local não encontrado. Tente digitar de outra forma.');
+                            }
+                        })
+                        .catch(err => {
+                            searchInput.disabled = false;
+                            searchInput.placeholder = originalPlaceholder;
+                            console.error('Geocoding error:', err);
+                            alert('Erro ao buscar o local. Verifique sua conexão.');
+                        });
                 }
             });
         }
@@ -632,20 +436,7 @@
                 }
             }
         });
-        document.querySelectorAll('.category-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                chip.classList.toggle('active');
 
-                const anyIncidentActive = document.querySelector('.category-chip[data-type="incidents"].active');
-                const supportActive = document.querySelector('.category-chip[data-type="support"].active');
-
-                const incidents = document.querySelectorAll('.incident-marker');
-                const supports = document.querySelectorAll('.support-shield');
-
-                incidents.forEach(m => m.style.display = anyIncidentActive ? 'flex' : 'none');
-                supports.forEach(m => m.style.display = supportActive ? 'flex' : 'none');
-            });
-        });
         const tutorialSteps = [
             { title: "1. Entenda o mapa", text: "Visualize zonas de risco, locais de apoio e sua localização atual de forma rápida e clara.", icon: "map", target: "map-center" },
             { title: "2. Pesquisa Rápida", text: "Pesquise bairros ou regiões para visualizar o nível de risco e ocorrências naquelas áreas.", icon: "search", target: ".search-bar" },
@@ -756,74 +547,6 @@
                 updateStep();
             }, 1000);
         }
-
-        const staticIncidents = [
-            { top: '1120px', left: '1080px', type: 'danger', address: 'Av. Brigadeiro Faria Lima, 1200', district: 'Itaim Bibi', reports: 8 },
-            { top: '1310px', left: '1290px', type: 'danger', address: 'Av. Paulista, 1578', district: 'Bela Vista', reports: 12 },
-            { top: '1380px', left: '1060px', type: 'danger', address: 'Rua Amauri, 45', district: 'Itaim Bibi', reports: 5 },
-            { top: '1140px', left: '1220px', type: 'warning', address: 'R. Oscar Freire, 379', district: 'Jardins', reports: 3 },
-            { top: '1340px', left: '1340px', type: 'warning', address: 'Al. Santos, 2200', district: 'Cerqueira César', reports: 4 },
-            { top: '780px', left: '620px', type: 'danger', address: 'R. dos Pinheiros, 500', district: 'Pinheiros', reports: 7 },
-            { top: '1680px', left: '1450px', type: 'warning', address: 'Av. Ibirapuera, 2100', district: 'Moema', reports: 2 }
-        ];
-
-        const userReports = JSON.parse(localStorage.getItem('userReports') || '[]');
-        const mapContentEl = document.getElementById('map-content');
-
-        const groupedReports = {};
-
-        // Inicializa com dados estáticos
-        staticIncidents.forEach(incident => {
-            const key = `${incident.top}-${incident.left}`;
-            // Simulando uma distribuição para dados estáticos
-            const wReports = incident.type === 'danger' ? Math.floor(incident.reports * 0.7) : Math.floor(incident.reports * 0.4);
-            const lReports = incident.reports - wReports;
-
-            groupedReports[key] = {
-                ...incident,
-                womenReports: wReports,
-                lgbtReports: lReports
-            };
-        });
-
-        // Adiciona relatos de usuários
-        userReports.forEach(report => {
-            const key = `${report.top}-${report.left}`;
-            if (!groupedReports[key]) {
-                groupedReports[key] = {
-                    ...report,
-                    reports: 1,
-                    womenReports: report.targetGroup === 'women' ? 1 : 0,
-                    lgbtReports: report.targetGroup === 'lgbt' ? 1 : 0
-                };
-            } else {
-                groupedReports[key].reports++;
-                if (report.targetGroup === 'women') groupedReports[key].womenReports++;
-                if (report.targetGroup === 'lgbt') groupedReports[key].lgbtReports++;
-
-                // Se o relato do usuário for 'danger', atualiza o tipo do marcador para vermelho
-                if (report.type === 'danger') groupedReports[key].type = 'danger';
-            }
-        });
-
-        Object.values(groupedReports).forEach(report => {
-            if (!mapContentEl) return;
-            const marker = document.createElement('div');
-            marker.className = `incident-marker ${report.type}`;
-            marker.style.top = report.top;
-            marker.style.left = report.left;
-            marker.setAttribute('data-info', JSON.stringify(report));
-
-            marker.innerHTML = `
-                <div class="marker-glow"></div>
-                <div class="marker-core"><i data-lucide="alert-circle" size="14"></i></div>
-            `;
-            marker.style.cursor = 'pointer';
-            marker.style.pointerEvents = 'auto';
-            mapContentEl.appendChild(marker);
-        });
-
-        lucide.createIcons();
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('success') === 'true') {

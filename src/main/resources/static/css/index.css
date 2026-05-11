@@ -124,7 +124,7 @@
 }
 
 .category-chip.active { background-color: var(--primary-purple); color: var(--white); }
-.category-chip[data-type="support"].active { background-color: var(--support-teal); }
+.category-chip[data-type="support"].active { background-color: var(--support-blue); }
 
 .chip-icon-box {
     width: 26px;
@@ -148,6 +148,16 @@
 .category-chip.active:not([data-type="support"]) .chip-icon-box:not([style*="linear-gradient"]) i,
 .category-chip.active:not([data-type="support"]) .chip-icon-box:not([style*="linear-gradient"]) svg {
     color: var(--primary-purple);
+}
+
+.category-chip[data-type="support"] .chip-icon-box {
+    background-color: var(--support-blue);
+    color: var(--white);
+}
+
+.category-chip[data-type="support"].active .chip-icon-box {
+    background-color: var(--white);
+    color: var(--support-blue);
 }
 
 .map-bg {
@@ -272,6 +282,11 @@
     background: radial-gradient(circle, rgba(245, 158, 11, 0.45) 0%, rgba(245, 158, 11, 0.15) 45%, rgba(245, 158, 11, 0) 70%); 
 }
 
+.incident-marker.safe .marker-core { background-color: #10B981; }
+.incident-marker.safe .marker-glow { 
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.45) 0%, rgba(16, 185, 129, 0.15) 45%, rgba(16, 185, 129, 0) 70%); 
+}
+
 .user-location {
     position: absolute;
     width: 80px;
@@ -309,7 +324,7 @@
 
 .support-shield {
     position: absolute;
-    color: var(--support-teal);
+    color: var(--support-blue);
     z-index: 25;
     transform: translate(-50%, -50%);
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
