@@ -147,46 +147,86 @@
             }
         }
 
-        function handleReport(e) {
+        let currentCoords = null;
+
+        async function getCurrentLocation() {
+            const locInput = document.getElementById('report-loc');
+            const originalValue = locInput.value;
+            locInput.value = "Buscando endereço...";
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    currentCoords = { lat, lng: lon };
+
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+                        const data = await response.json();
+
+                        if (data.address) {
+                            const road = data.address.road || data.address.pedestrian || "Rua não identificada";
+                            const number = data.address.house_number || data.address.building || "S/N";
+                            const suburb = data.address.suburb || data.address.neighbourhood || data.address.city_district || "Bairro não identificado";
+                            const city = data.address.city || data.address.town || data.address.village || "SP";
+
+                            const formattedAddress = `${road} - ${number} - ${suburb} - ${city}`;
+                            locInput.value = formattedAddress;
+                        } else {
+                            locInput.value = originalValue;
+                            alert("Não foi possível encontrar o endereço exato.");
+                        }
+                    } catch (error) {
+                        locInput.value = originalValue;
+                        console.error(error);
+                        alert("Erro ao buscar endereço. Verifique sua conexão.");
+                    }
+                }, (error) => {
+                    locInput.value = originalValue;
+                    alert("Por favor, permita o acesso à localização no seu navegador.");
+                });
+            } else {
+                alert("Geolocalização não é suportada pelo seu navegador.");
+            }
+        }
+
+        async function handleReport(e) {
             e.preventDefault();
             const type = document.getElementById('report-type').value;
             const desc = document.getElementById('report-desc').value;
             const loc = document.getElementById('report-loc').value;
             const datetime = document.getElementById('report-datetime').value;
+            const targetGroup = document.querySelector('input[name="target-group"]:checked').value;
 
-            const mockCoords = {
-                'paulista': { top: '1310px', left: '1290px' },
-                'ibirapuera': { top: '1680px', left: '1450px' },
-                'faria lima': { top: '1120px', left: '1080px' },
-                'pinheiros': { top: '780px', left: '620px' },
-                'jardins': { top: '1140px', left: '1220px' }
-            };
+            let reportLat = currentCoords ? currentCoords.lat : null;
+            let reportLng = currentCoords ? currentCoords.lng : null;
 
-            const query = loc.toLowerCase();
-            let coords = null;
-            for (let key in mockCoords) {
-                if (query.includes(key)) {
-                    coords = mockCoords[key];
-                    break;
+            if (!currentCoords || loc !== document.getElementById('report-loc').getAttribute('data-last-gps')) {
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(loc)}+sao+paulo&limit=1`);
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        reportLat = parseFloat(data[0].lat);
+                        reportLng = parseFloat(data[0].lon);
+                    }
+                } catch (error) {
+                    console.error("Erro na geocodificação manual:", error);
                 }
             }
 
-            if (!coords) {
-                coords = {
-                    top: Math.floor(Math.random() * (600 - 300) + 300) + 'px',
-                    left: Math.floor(Math.random() * (300 - 50) + 50) + 'px'
-                };
+            if (!reportLat || !reportLng) {
+                reportLat = -23.5505 + (Math.random() * 0.02 - 0.01);
+                reportLng = -46.6333 + (Math.random() * 0.02 - 0.01);
             }
 
-            const targetGroup = document.querySelector('input[name="target-group"]:checked').value;
-
             const newReport = {
+                lat: reportLat,
+                lng: reportLng,
                 type: (type === 'assalto' || type === 'assedio') ? 'danger' : 'warning',
                 description: desc,
-                locationName: loc,
-                top: coords.top,
-                left: coords.left,
-                targetGroup: targetGroup
+                address: loc,
+                targetGroup: targetGroup,
+                date: datetime
             };
 
             const reports = JSON.parse(localStorage.getItem('userReports') || '[]');

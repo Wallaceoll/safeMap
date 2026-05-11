@@ -44,7 +44,7 @@ function loadIncidents() {
     const groupedReports = {};
 
     staticIncidents.forEach(incident => {
-        const key = `${incident.lat}-${incident.lng}`;
+        const key = `${incident.lat.toFixed(4)}-${incident.lng.toFixed(4)}`;
         const wReports = incident.type === 'danger' ? Math.floor(incident.reports * 0.7) : Math.floor(incident.reports * 0.4);
         const lReports = incident.reports - wReports;
 
@@ -58,10 +58,15 @@ function loadIncidents() {
     userReports.forEach(report => {
         if (!report.lat || !report.lng) return;
 
-        const key = `${report.lat}-${report.lng}`;
+        const key = `${parseFloat(report.lat).toFixed(4)}-${parseFloat(report.lng).toFixed(4)}`;
+
         if (!groupedReports[key]) {
             groupedReports[key] = {
-                ...report,
+                lat: parseFloat(report.lat),
+                lng: parseFloat(report.lng),
+                type: report.type || 'warning',
+                address: report.address || 'Localização relatada',
+                district: report.district || 'São Paulo',
                 reports: 1,
                 womenReports: report.targetGroup === 'women' ? 1 : 0,
                 lgbtReports: report.targetGroup === 'lgbt' ? 1 : 0
@@ -77,6 +82,10 @@ function loadIncidents() {
     window.safeMap.groupedReports = groupedReports;
     window.safeMap.renderIncidents();
     map.addLayer(incidentLayer);
+
+    setTimeout(() => {
+        if (window.lucide) window.lucide.createIcons();
+    }, 100);
 }
 
 window.safeMap.renderIncidents = function () {
@@ -103,10 +112,15 @@ window.safeMap.renderIncidents = function () {
         }
 
         if (relevantReports === 0) return;
-
         let dynamicType = 'safe';
-        if (riskValueForColor >= 8) dynamicType = 'danger';
-        else if (riskValueForColor >= 3) dynamicType = 'warning';
+
+        if (relevantReports >= 8) {
+            dynamicType = 'danger';
+        } else if (relevantReports >= 3) {
+            dynamicType = 'warning';
+        } else {
+            dynamicType = 'safe';
+        }
 
         const reportContextual = { ...report, dynamicType, relevantReports };
 
