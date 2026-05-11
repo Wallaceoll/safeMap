@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,8 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/apoio.css">
+    <link rel="stylesheet" href="css/apoio.css?v=1.2">
+    <script src="js/overpass.js"></script>
 </head>
+
 <body>
     <div class="app-container">
         <header class="app-header">
@@ -19,11 +22,20 @@
 
         <main>
             <div class="search-container">
-                <input type="text" class="search-input" id="resource-search" placeholder="Buscar locais de apoio">
+                <input type="text" class="search-input" id="resource-search" placeholder="Buscar região ou local">
                 <i data-lucide="search" class="search-icon" size="20"></i>
+                <div id="search-suggestions" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5E7EB; border-radius: 12px; margin-top: 8px; z-index: 1000; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);"></div>
             </div>
 
-            <div class="resource-list" id="resource-list"></div>
+            <div class="location-status" id="location-status"
+                style="font-size: 13px; color: #6B7280; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="map-pin" size="14"></i>
+                <span>Localizando...</span>
+            </div>
+
+            <div class="resource-list" id="resource-list">
+                <!-- Lista será preenchida dinamicamente -->
+            </div>
         </main>
 
         <nav class="bottom-nav">
@@ -43,91 +55,88 @@
     </div>
 
     <script>
-        const resources = [
-            {
-                name: "Hospital Ipiranga",
-                subtitle: "Zona Sul • São Paulo - SP",
-                address: "Rua Silva Bueno, 1647 - Ipiranga, São Paulo - SP",
-                time: "Aberto 24h",
-                distance: 0.5,
-                mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Hospital+Ipiranga+SP"
-            },
-            {
-                name: "Centro de Apoio LGBT+ Arouche",
-                subtitle: "Centro • São Paulo - SP",
-                address: "Largo do Arouche, 10 - Centro, São Paulo - SP",
-                time: "Aberto das 09h às 20h",
-                distance: 1.2,
-                mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Largo+do+Arouche+SP"
-            },
-            {
-                name: "Casa da Mulher Brasileira",
-                subtitle: "Região Central • São Paulo - SP",
-                address: "Rua Antônio de Oliveira, 100 - Cambuci, São Paulo - SP",
-                time: "Aberto 24h",
-                distance: 2.8,
-                mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Casa+da+Mulher+Brasileira+SP"
-            },
-            {
-                name: "Delegacia da Mulher Itaquera",
-                subtitle: "Zona Leste • São Paulo - SP",
-                address: "Rua Antônio de Olivoka, 100 - Itaquera, São Paulo - SP",
-                time: "Aberto das 08h às 18h",
-                distance: 15.4,
-                mapUrl: "https://www.google.com/maps/dir/?api=1&destination=Delegacia+da+Mulher+Itaquera"
-            }
-        ];
-
+        let userCoords = null;
         const listContainer = document.getElementById('resource-list');
         const searchInput = document.getElementById('resource-search');
+        const suggestionsBox = document.getElementById('search-suggestions');
+        const statusText = document.getElementById('location-status').querySelector('span');
 
-        function renderResources(filter = "") {
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function getBBox(lat, lng, distance = 0.05) {
+            return `${lat - distance},${lng - distance},${lat + distance},${lng + distance}`;
+        }
+
+        async function loadApoio(lat, lng, label = "Sua localização") {
+            statusText.textContent = `Buscando recursos próximos a ${label}...`;
+            listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Buscando recursos reais...</div>';
+
+            const bbox = getBBox(lat, lng);
+            const pois = await window.safeMap.fetchOverpassPOIs(bbox);
+
+            const sortedPois = pois.map(p => {
+                const dist = calculateDistance(lat, lng, p.lat, p.lon);
+                return { ...p, distance: dist };
+            }).sort((a, b) => a.distance - b.distance);
+
+            renderPois(sortedPois, lat, lng);
+            statusText.textContent = `Mostrando recursos em ${label}`;
+        }
+
+        function renderPois(pois, centerLat, centerLng) {
             listContainer.innerHTML = "";
-            let filtered = resources.filter(r => 
-                r.name.toLowerCase().includes(filter.toLowerCase()) || 
-                r.address.toLowerCase().includes(filter.toLowerCase())
-            );
-
-            filtered.sort((a, b) => a.distance - b.distance);
-
-            if (filtered.length === 0) {
-                listContainer.innerHTML = `<div style="text-align:center; padding: 40px; color: #9CA3AF;">Nenhum local encontrado.</div>`;
+            if (pois.length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center; padding: 40px; color: #9CA3AF;">Nenhum recurso encontrado nesta região.</div>`;
                 return;
             }
 
-            if (!filter) {
-                const header = document.createElement('h3');
-                header.style.cssText = "font-size: 14px; color: #6B7280; margin: 0 0 16px 4px; font-weight: 600;";
-                header.textContent = "Locais mais próximos de você";
-                listContainer.appendChild(header);
-            }
+            pois.forEach(p => {
+                const name = p.tags.name || p.tags.operator || "Recurso de Apoio";
+                const suburb = p.tags['addr:suburb'] || p.tags['addr:neighbourhood'] || "Bairro não informado";
+                const city = p.tags['addr:city'] || "São Paulo";
+                const street = p.tags['addr:street'] || "Endereço não disponível";
+                const number = p.tags['addr:housenumber'] || "S/N";
+                
+                // Lógica inteligente de horários
+                let opening = p.tags.opening_hours;
+                if (!opening) {
+                    const is24h = p.tags.amenity === 'police' || p.tags.amenity === 'hospital' || p.tags.emergency === 'yes';
+                    opening = is24h ? "Aberto 24h" : "Aberto das 08h às 18h";
+                }
 
-            filtered.forEach(r => {
                 const card = document.createElement('div');
                 card.className = "resource-card";
                 card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <h2>${r.name}</h2>
-                        <span style="font-size: 12px; font-weight: 700; color: #0EA5E9; background: #E0F2FE; padding: 4px 8px; border-radius: 8px;">
-                            A ${r.distance} km
-                        </span>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                        <h2 style="margin: 0; flex: 1; padding-right: 12px;">${name}</h2>
+                        <span class="distance-tag">A ${p.distance.toFixed(1)} km</span>
                     </div>
-                    <span class="card-subtitle">${r.subtitle}</span>
+                    <span class="card-subtitle">${suburb} • ${city} - SP</span>
+                    
                     <div class="card-info">
-                        <div class="info-item">
+                        <div class="info-item location">
                             <i data-lucide="map-pin" size="18"></i>
-                            <span>${r.address}</span>
+                            <span>${street}, ${number} - ${suburb}, ${city} - SP</span>
                         </div>
                         <div class="info-item status">
                             <i data-lucide="clock" size="18"></i>
-                            <span>${r.time}</span>
+                            <span>${opening}</span>
                         </div>
                     </div>
+
                     <div class="card-actions">
-                        <button class="btn-card-action" onclick="window.open('${r.mapUrl}', '_blank')">
-                            <i data-lucide="map" size="18"></i> Ver rota
+                        <button class="btn-card-action" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}', '_blank')">
+                            <i data-lucide="map-pin" size="18"></i> Ver rota
                         </button>
-                        <button class="btn-card-action btn-external"><i data-lucide="external-link" size="20"></i></button>
                     </div>
                 `;
                 listContainer.appendChild(card);
@@ -135,9 +144,57 @@
             lucide.createIcons();
         }
 
-        searchInput.addEventListener('input', (e) => renderResources(e.target.value));
-        renderResources();
+        // Busca por região
+        let debounceTimer;
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value;
+            clearTimeout(debounceTimer);
+            if (query.length < 4) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=br`);
+                    const data = await res.json();
+                    if (data.length > 0) {
+                        suggestionsBox.innerHTML = '';
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.style.padding = '12px';
+                            div.style.cursor = 'pointer';
+                            div.style.borderBottom = '1px solid #EEE';
+                            div.textContent = item.display_name;
+                            div.onclick = () => {
+                                searchInput.value = item.display_name;
+                                suggestionsBox.style.display = 'none';
+                                loadApoio(parseFloat(item.lat), parseFloat(item.lon), item.display_name.split(',')[0]);
+                            };
+                            suggestionsBox.appendChild(div);
+                        });
+                        suggestionsBox.style.display = 'block';
+                    }
+                } catch (e) { console.error(e); }
+            }, 500);
+        });
+
+        // Localização inicial
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                loadApoio(userCoords.lat, userCoords.lng);
+            }, err => {
+                statusText.textContent = "GPS desativado. Use a busca acima.";
+                // Fallback para o centro de SP
+                loadApoio(-23.5505, -46.6333, "São Paulo");
+            });
+        } else {
+            loadApoio(-23.5505, -46.6333, "São Paulo");
+        }
+
         lucide.createIcons();
     </script>
 </body>
+
 </html>

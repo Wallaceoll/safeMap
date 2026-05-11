@@ -2,23 +2,13 @@
  * Integração com a Overpass API para buscar POIs reais (Hospitais, Delegacias, Acolhimento)
  */
 
-const SP_BBOX = "-23.6300,-46.7300,-23.5000,-46.5500";
-
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
 
-const QUERY = `
-    [out:json][timeout:25];
-    (
-      nwr["amenity"="hospital"](${SP_BBOX});
-      nwr["amenity"="police"](${SP_BBOX});
-      nwr["social_facility"](${SP_BBOX});
-      nwr["amenity"="social_facility"](${SP_BBOX});
-    );
-    out center;
-`;
+// BBOX padrão de São Paulo se não for informado
+const DEFAULT_BBOX = "-23.6300,-46.7300,-23.5000,-46.5500";
 
-async function fetchOverpassPOIs() {
-    const cacheKey = 'safeMap_overpass_pois_cache_v3';
+async function fetchOverpassPOIs(bbox = DEFAULT_BBOX) {
+    const cacheKey = `safeMap_overpass_pois_${bbox.replace(/,/g, '_')}`;
     const cached = sessionStorage.getItem(cacheKey);
 
     if (cached) {
@@ -26,11 +16,22 @@ async function fetchOverpassPOIs() {
         return JSON.parse(cached);
     }
 
+    const query = `
+        [out:json][timeout:25];
+        (
+          nwr["amenity"="hospital"](${bbox});
+          nwr["amenity"="police"](${bbox});
+          nwr["social_facility"](${bbox});
+          nwr["amenity"="social_facility"](${bbox});
+        );
+        out center;
+    `;
+
     try {
         console.log("Buscando POIs reais no OpenStreetMap via Overpass...");
         const response = await fetch(OVERPASS_URL, {
             method: 'POST',
-            body: 'data=' + encodeURIComponent(QUERY),
+            body: 'data=' + encodeURIComponent(query),
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
