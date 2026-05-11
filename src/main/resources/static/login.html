@@ -31,7 +31,7 @@
                     <div class="input-wrapper">
                         <input type="password" class="input-control" id="password" placeholder="Digite sua senha">
                         <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
-                            <i data-lucide="eye" size="20"></i>
+                            <i data-lucide="eye-off" size="20"></i>
                         </button>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
             const input = document.getElementById(inputId);
             const isPassword = input.type === 'password';
             input.type = isPassword ? 'text' : 'password';
-            btn.innerHTML = `<i data-lucide="${isPassword ? 'eye' : 'eye-off'}" size="20"></i>`;
+            btn.innerHTML = `<i data-lucide="${input.type === 'text' ? 'eye' : 'eye-off'}" size="20"></i>`;
             lucide.createIcons();
         }
 
@@ -114,8 +114,20 @@
                 return;
             }
 
+            if (password.length < 6) {
+                alert('A senha deve ter pelo menos 6 caracteres.');
+                return;
+            }
+
             if (!validateEmail(email)) {
                 alert('Por favor, insira um e-mail válido (ex: usuario@dominio.com).');
+                return;
+            }
+
+            const savedData = JSON.parse(localStorage.getItem('userData'));
+
+            if (!savedData || email !== savedData.email || password !== savedData.password) {
+                alert('Senha incorreta, tente novamente ou clique em esqueci minha senha');
                 return;
             }
 

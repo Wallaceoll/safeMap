@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/cadastro.css">
 </head>
+
 <body>
     <div class="app-container">
         <header class="app-header">
@@ -42,8 +44,10 @@
                 <div class="form-group">
                     <label>Confirmar senha</label>
                     <div class="input-wrapper">
-                        <input type="password" class="input-control" id="confirm_password" placeholder="Confirme sua senha">
-                        <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)">
+                        <input type="password" class="input-control" id="confirm_password"
+                            placeholder="Confirme sua senha">
+                        <button type="button" class="toggle-password"
+                            onclick="togglePassword('confirm_password', this)">
                             <i data-lucide="eye-off" size="20"></i>
                         </button>
                     </div>
@@ -63,7 +67,9 @@
 
             <div style="text-align: center; margin-top: 40px; padding: 0 20px;">
                 <p style="font-size: 12px; color: #9CA3AF; line-height: 1.6;">
-                    Ao criar uma conta, você concorda com nossos <a href="#" style="color: #6B7280; text-decoration: underline;">Termos de Uso</a> e <a href="#" style="color: #6B7280; text-decoration: underline;">Política de Privacidade</a>.
+                    Ao criar uma conta, você concorda com nossos <a href="#"
+                        style="color: #6B7280; text-decoration: underline;">Termos de Uso</a> e <a href="#"
+                        style="color: #6B7280; text-decoration: underline;">Política de Privacidade</a>.
                 </p>
             </div>
         </main>
@@ -125,9 +131,17 @@
                 return;
             }
 
+            const userData = {
+                email: email,
+                password: password,
+                name: name
+            };
+            localStorage.setItem('userData', JSON.stringify(userData));
+
             localStorage.setItem('isLoggedIn', 'true');
             location.href = 'index.html';
         }
     </script>
 </body>
+
 </html>
