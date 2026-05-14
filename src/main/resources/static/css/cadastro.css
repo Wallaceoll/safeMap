@@ -53,6 +53,20 @@ main {
     margin-bottom: 8px;
     color: #111827;
 }
+.checkbox-container{
+    display: flex;
+    align-items:flex-start;
+    gap:10px;
+    margin-top: 15px;
+}
+.checkbox-container input{
+    margin-top: 4px;
+}
+.checkbox-container label{
+    font-size: 14px;
+    color: #4B5563;
+    line-height: 1.4;
+}
 
 .input-wrapper {
     position: relative;
