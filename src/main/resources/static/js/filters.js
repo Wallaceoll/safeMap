@@ -34,5 +34,10 @@ document.querySelectorAll('.category-chip').forEach(chip => {
                 }
             }
         });
+
+        // Garantir ícones atualizados após mudanças de camada
+        if (window.lucide) {
+            setTimeout(() => window.lucide.createIcons(), 50);
+        }
     });
 });

@@ -43,7 +43,7 @@ function createSupportIcon(iconName) {
         className: 'custom-support-marker',
         html: `
             <div class="support-shield" style="position: relative; pointer-events: none;">
-                <div class="category-chip" style="padding: 0; border-radius: 50%; width: 34px; height: 34px; justify-content: center; background-color: #0EA5E9; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; width: 34px; height: 34px; background-color: #0EA5E9; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     <i data-lucide="${iconName}" size="18" style="color: white;"></i>
                 </div>
             </div>
@@ -140,13 +140,26 @@ async function loadPOIs() {
         }
     });
 
-    map.addLayer(hospitalLayer);
-    map.addLayer(policeLayer);
-    map.addLayer(shelterLayer);
+    // Só adiciona ao mapa se o filtro estiver ativo (o padrão é ativo)
+    const supportActive = document.querySelector('.category-chip[data-type="support"].active');
+    if (supportActive) {
+        map.addLayer(hospitalLayer);
+        map.addLayer(policeLayer);
+        map.addLayer(shelterLayer);
+    }
     
-    hospitalLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
-    policeLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
-    shelterLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
+    // Garantir que os ícones do Lucide sejam renderizados quando o cluster abre ou move
+    const updateIcons = () => window.lucide && window.lucide.createIcons();
+    hospitalLayer.on('animationend', updateIcons);
+    policeLayer.on('animationend', updateIcons);
+    shelterLayer.on('animationend', updateIcons);
+    
+    // Também escutar quando novas camadas entram no mapa (útil quando sai do cluster)
+    map.on('layeradd', (e) => {
+        if (e.layer instanceof L.Marker && e.layer.options.pane === 'support') {
+            updateIcons();
+        }
+    });
     
     console.log(`POIs carregados: Hospitais: ${hospitalLayer.getLayers().length}, Polícia: ${policeLayer.getLayers().length}, Acolhimento: ${shelterLayer.getLayers().length}`);
     

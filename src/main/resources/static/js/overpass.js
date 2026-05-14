@@ -34,8 +34,7 @@ async function fetchOverpassPOIs(bbox = DEFAULT_BBOX) {
             body: 'data=' + encodeURIComponent(query),
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Accept': 'application/json',
-                'User-Agent': 'SafeMap/1.0 (prototype)'
+                'Accept': 'application/json'
             }
         });
 
