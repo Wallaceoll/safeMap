@@ -16,47 +16,42 @@ async function fetchOverpassPOIs(bbox = DEFAULT_BBOX) {
         return JSON.parse(cached);
     }
 
-    const query = `
-        [out:json][timeout:25];
-        (
-          nwr["amenity"="hospital"](${bbox});
-          nwr["amenity"="police"](${bbox});
-          nwr["social_facility"](${bbox});
-          nwr["amenity"="social_facility"](${bbox});
-        );
-        out center;
-    `;
+    const query = `[out:json][timeout:25];(nwr["amenity"="hospital"](${bbox});nwr["amenity"="police"](${bbox});nwr["social_facility"](${bbox});nwr["amenity"="social_facility"](${bbox}););out center;`;
 
-    try {
-        console.log("Buscando POIs reais no OpenStreetMap via Overpass...");
-        const response = await fetch(OVERPASS_URL, {
-            method: 'POST',
-            body: 'data=' + encodeURIComponent(query),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Accept': 'application/json'
-            }
-        });
+    // Tentamos o servidor principal e um mirror se falhar
+    const endpoints = [
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://overpass.openstreetmap.ru/api/interpreter"
+    ];
 
-        if (!response.ok) {
-            throw new Error(`Overpass API error: ${response.status}`);
+    for (const url of endpoints) {
+        try {
+            console.log(`Buscando POIs via ${url}...`);
+            // Usar GET com o parâmetro 'data' é mais compatível com CORS em alguns ambientes
+            const response = await fetch(`${url}?data=${encodeURIComponent(query)}`);
+
+            if (!response.ok) continue;
+
+            const data = await response.json();
+            if (!data || !data.elements) continue;
+
+            const pois = data.elements.filter(el => el.tags).map(el => {
+                if (el.type === 'way' || el.type === 'relation') {
+                    return { ...el, lat: el.center.lat, lon: el.center.lon };
+                }
+                return el;
+            });
+
+            sessionStorage.setItem(cacheKey, JSON.stringify(pois));
+            return pois;
+        } catch (err) {
+            console.warn(`Falha no endpoint ${url}:`, err);
         }
-
-        const data = await response.json();
-
-        const pois = data.elements.filter(el => el.tags).map(el => {
-            if (el.type === 'way' || el.type === 'relation') {
-                return { ...el, lat: el.center.lat, lon: el.center.lon };
-            }
-            return el;
-        });
-        
-        sessionStorage.setItem(cacheKey, JSON.stringify(pois));
-        return pois;
-    } catch (err) {
-        console.error("Falha ao buscar dados do Overpass:", err);
-        return [];
     }
+
+    console.error("Todos os endpoints do Overpass falharam (provavelmente CORS ou rede).");
+    return [];
 }
 
 window.safeMap = window.safeMap || {};

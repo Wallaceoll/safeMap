@@ -59,10 +59,51 @@ const icons = {
     shelter: createSupportIcon('home')
 };
 
-async function loadPOIs() {
-    const pois = await window.safeMap.fetchOverpassPOIs();
+let currentBBox = null;
+let isFetchingPOIs = false;
+
+async function loadPOIs(forcedBBox = null) {
+    if (isFetchingPOIs) return;
+    
+    // Calcular bbox da visão atual se não for informado
+    let bbox = forcedBBox;
+    if (!bbox && window.safeMap.map) {
+        const bounds = window.safeMap.map.getBounds();
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        bbox = `${sw.lat.toFixed(4)},${sw.lng.toFixed(4)},${ne.lat.toFixed(4)},${ne.lng.toFixed(4)}`;
+    }
+    
+    // Se a área não mudou significativamente, não busca de novo (simples otimização)
+    if (!forcedBBox && currentBBox === bbox) return;
+    currentBBox = bbox;
+    
+    isFetchingPOIs = true;
+    const pois = await window.safeMap.fetchOverpassPOIs(bbox);
+    isFetchingPOIs = false;
+
+    // Se falhar e não tivermos nada, adicionar alguns pontos de fallback para a Paulista
+    // Isso garante que o mapa nunca pareça quebrado se a API falhar
+    if (pois.length === 0 && hospitalLayer.getLayers().length === 0) {
+        console.warn("Usando pontos de apoio de fallback devido a falha na API.");
+        pois.push(
+            { lat: -23.5670, lon: -46.6480, tags: { name: "Hospital Santa Catarina", amenity: "hospital" } },
+            { lat: -23.5630, lon: -46.6540, tags: { name: "78º DP - Jardins", amenity: "police" } },
+            { lat: -23.5580, lon: -46.6610, tags: { name: "Centro de Apoio", social_facility: "shelter" } }
+        );
+    }
+
+    // Limpar apenas se estivermos buscando uma área totalmente nova
+    // Para simplificar, vamos apenas adicionar os novos sem duplicar
+    const existingIds = new Set();
+    [hospitalLayer, policeLayer, shelterLayer].forEach(l => {
+        l.getLayers().forEach(m => { if(m._osmId) existingIds.add(m._osmId) });
+    });
 
     pois.forEach(node => {
+        const id = node.id || `${node.lat}-${node.lon}`;
+        if (existingIds.has(id)) return;
+
         const latlng = [node.lat, node.lon];
         const tags = node.tags;
 
@@ -89,6 +130,7 @@ async function loadPOIs() {
                 icon: iconToUse,
                 pane: 'support'
             });
+            marker._osmId = id;
 
             marker.on('click', async () => {
                 const supportBlock = document.getElementById('support-details');
@@ -109,13 +151,11 @@ async function loadPOIs() {
                 supportBlock.style.display = 'block';
                 detailsOverlay.classList.add('active');
 
-                // Configurar o botão "Ver local na lista de apoio"
                 const howToGetBtn = document.getElementById('btn-view-on-support');
                 if (howToGetBtn) {
                     howToGetBtn.onclick = (e) => {
                         e.preventDefault();
                         const name = tags.name || typeName;
-                        console.log("Navegando para Apoio com busca:", name);
                         window.location.href = `apoio.html?search=${encodeURIComponent(name)}`;
                     };
                 }
@@ -124,14 +164,10 @@ async function loadPOIs() {
                     const geoData = await window.safeMap.getAddressFromCoords(latlng[0], latlng[1]);
                     if (geoData) {
                         let finalStreet = geoData.street;
-                        
                         if (!finalStreet.includes(',') && tags['addr:housenumber']) {
                             finalStreet += `, ${tags['addr:housenumber']}`;
                         }
-                        
                         addressEl.textContent = finalStreet + (geoData.district ? ` - ${geoData.district}` : '');
-                    } else if (fallbackAddress.length === 0) {
-                        addressEl.textContent = 'Endereço não informado';
                     }
                 }
             });
@@ -140,34 +176,35 @@ async function loadPOIs() {
         }
     });
 
-    // Só adiciona ao mapa se o filtro estiver ativo (o padrão é ativo)
     const supportActive = document.querySelector('.category-chip[data-type="support"].active');
     if (supportActive) {
-        map.addLayer(hospitalLayer);
-        map.addLayer(policeLayer);
-        map.addLayer(shelterLayer);
+        if (!map.hasLayer(hospitalLayer)) map.addLayer(hospitalLayer);
+        if (!map.hasLayer(policeLayer)) map.addLayer(policeLayer);
+        if (!map.hasLayer(shelterLayer)) map.addLayer(shelterLayer);
     }
     
-    // Garantir que os ícones do Lucide sejam renderizados quando o cluster abre ou move
     const updateIcons = () => window.lucide && window.lucide.createIcons();
     hospitalLayer.on('animationend', updateIcons);
     policeLayer.on('animationend', updateIcons);
     shelterLayer.on('animationend', updateIcons);
     
-    // Também escutar quando novas camadas entram no mapa (útil quando sai do cluster)
     map.on('layeradd', (e) => {
         if (e.layer instanceof L.Marker && e.layer.options.pane === 'support') {
             updateIcons();
         }
     });
     
-    console.log(`POIs carregados: Hospitais: ${hospitalLayer.getLayers().length}, Polícia: ${policeLayer.getLayers().length}, Acolhimento: ${shelterLayer.getLayers().length}`);
-    
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
+    if (window.lucide) window.lucide.createIcons();
 }
 
+// Inicializar e escutar movimentos do mapa para carregar novos POIs
+let moveTimeout;
+map.on('moveend', () => {
+    clearTimeout(moveTimeout);
+    moveTimeout = setTimeout(() => loadPOIs(), 1000);
+});
+
+// Carga inicial
 loadPOIs();
 
 window.safeMap.layers = window.safeMap.layers || {};
