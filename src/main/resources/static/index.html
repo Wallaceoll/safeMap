@@ -362,6 +362,10 @@
         if (searchInput) {
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
+                    if (!isLoggedIn) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
                     const query = searchInput.value.trim();
                     if (!query) return;
 
@@ -405,7 +409,9 @@
         }
 
         const restrictedElements = [
+            document.querySelector('.search-bar input'),
             document.querySelector('a[href="relatar.html"]'),
+            document.querySelector('a[href="apoio.html"]'),
             document.querySelector('.btn-help-center')
         ];
 

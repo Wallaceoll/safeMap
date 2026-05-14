@@ -224,17 +224,6 @@
             renderPois(filtered);
         }
 
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const relatarBtn = document.querySelector('a[href="relatar.html"]');
-        if (relatarBtn) {
-            relatarBtn.addEventListener('click', (e) => {
-                if (!isLoggedIn) {
-                    e.preventDefault();
-                    window.location.href = 'login.html';
-                }
-            });
-        }
-
         initApoio();
         lucide.createIcons();
     </script>
