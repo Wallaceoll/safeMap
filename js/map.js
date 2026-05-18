@@ -40,8 +40,7 @@ window.safeMap.getAddressFromCoords = async function(lat, lng) {
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
             headers: {
-                'Accept-Language': 'pt-BR',
-                'User-Agent': 'SafeMap/1.0'
+                'Accept-Language': 'pt-BR'
             }
         });
         const data = await response.json();

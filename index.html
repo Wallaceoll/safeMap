@@ -294,8 +294,8 @@
 
     <script src="js/map.js?v=1.1"></script>
     <script src="js/location.js?v=1.1"></script>
-    <script src="js/overpass.js?v=1.1"></script>
-    <script src="js/pois.js?v=1.1"></script>
+    <script src="js/overpass.js?v=2.0"></script>
+    <script src="js/pois.js?v=2.0"></script>
     <script src="js/incidents.js?v=1.1"></script>
     <script src="js/filters.js?v=1.1"></script>
     <script src="js/tutorial.js?v=1.1"></script>
@@ -362,6 +362,10 @@
         if (searchInput) {
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
+                    if (!isLoggedIn) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
                     const query = searchInput.value.trim();
                     if (!query) return;
 
@@ -405,7 +409,9 @@
         }
 
         const restrictedElements = [
+            document.querySelector('.search-bar input'),
             document.querySelector('a[href="relatar.html"]'),
+            document.querySelector('a[href="apoio.html"]'),
             document.querySelector('.btn-help-center')
         ];
 

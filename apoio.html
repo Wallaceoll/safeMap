@@ -9,7 +9,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/apoio.css?v=1.2">
-    <script src="js/overpass.js"></script>
+    <script src="js/overpass.js?v=2.0"></script>
 </head>
 
 <body>
@@ -222,17 +222,6 @@
                 return name.includes(searchQuery.toLowerCase());
             });
             renderPois(filtered);
-        }
-
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const relatarBtn = document.querySelector('a[href="relatar.html"]');
-        if (relatarBtn) {
-            relatarBtn.addEventListener('click', (e) => {
-                if (!isLoggedIn) {
-                    e.preventDefault();
-                    window.location.href = 'login.html';
-                }
-            });
         }
 
         initApoio();
