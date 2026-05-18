@@ -143,3 +143,53 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     top: 0;
     width: auto;
 }
+
+/* Classes adicionadas para relacionar com o relatar.html */
+.input-group {
+    margin-bottom: 16px;
+}
+
+.gps-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--primary-purple);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.gps-btn:hover {
+    background-color: var(--primary-purple-light);
+}
+
+.privacy-warning-box {
+    padding: 12px;
+    background-color: #FFFBEB;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    border: 1px solid #FEF3C7;
+}
+
+.privacy-warning-box i {
+    color: var(--warning-orange, #D97706);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.privacy-warning-box p {
+    font-size: 13px;
+    color: #92400E;
+    line-height: 1.5;
+    font-weight: 500;
+}
