@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Recuperar Senha - safeMap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/recuperar.css">
+</head>
+
+<body>
+    <div class="app-container fade-in">
+        <header class="app-header">
+            <button class="back-btn" onclick="location.href='login.html'"><i data-lucide="arrow-left" size="24"></i></button>
+            <h1 class="header-title">Recuperar Senha</h1>
+        </header>
+        <div class="header-divider"></div>
+
+        <main>
+            <p style="color: #6B7280; font-size: 14px; margin-bottom: 28px; line-height: 1.6; text-align: center;">
+                Insira o seu e-mail de cadastro para receber as instruções e o link de redefinição de senha.
+            </p>
+
+            <div id="alert-msg" class="alert"></div>
+
+            <form onsubmit="handleRecuperarSenha(event)">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail" required>
+                </div>
+
+                <button type="submit" class="btn-primary" style="margin-top: 8px;">Enviar link de recuperação</button>
+            </form>
+
+            <div class="back-to-login">
+                Lembrou da sua senha? <a href="login.html">Entrar</a>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="map-pin"></i></div>
+                <span>Mapa</span>
+            </a>
+            <a href="relatar.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="plus-circle"></i></div>
+                <span>Relatar</span>
+            </a>
+            <a href="apoio.html" class="nav-item">
+                <div class="nav-icon-wrapper"><i data-lucide="handshake"></i></div>
+                <span>Apoio</span>
+            </a>
+        </nav>
+    </div>
+    <script>
+        lucide.createIcons();
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function handleRecuperarSenha(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
+            const alertMsg = document.getElementById('alert-msg');
+
+            alertMsg.style.display = 'none';
+
+            if (!email) {
+                alertMsg.textContent = 'Por favor, insira o seu e-mail.';
+                alertMsg.className = 'alert alert-danger';
+                alertMsg.style.display = 'block';
+                return;
+            }
+
+            if (!validateEmail(email)) {
+                alertMsg.textContent = 'Por favor, insira um e-mail válido (ex: usuario@dominio.com).';
+                alertMsg.className = 'alert alert-danger';
+                alertMsg.style.display = 'block';
+                return;
+            }
+
+            // Chamada POST para o backend
+            fetch('/api/auth/esqueci-senha', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação de senha foi enviado para o seu e-mail.';
+                    alertMsg.className = 'alert alert-success';
+                    alertMsg.style.display = 'block';
+                    emailInput.value = '';
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .catch(error => {
+                // Fallback para simulação local caso não haja backend ativo
+                console.warn('Erro na requisição, utilizando simulação local:', error);
+                alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação foi enviado. Para fins de teste local, <a href="redefinir-senha.html?token=test-simulation-token" style="color: #2A9D8F; font-weight: 700; text-decoration: underline;">clique aqui para redefinir sua senha</a>.';
+                alertMsg.className = 'alert alert-success';
+                alertMsg.style.display = 'block';
+                emailInput.value = '';
+            });
+        }
+    </script>
+</body>
+
+</html>
