@@ -1,0 +1,32 @@
+.alert {
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 24px;
+    display: none;
+    line-height: 1.5;
+}
+
+.alert-success {
+    background-color: #EBF7F5;
+    color: #2A9D8F;
+    border: 1px solid #2A9D8F;
+}
+
+.alert-danger {
+    background-color: #FDF2F2;
+    color: #E63946;
+    border: 1px solid #E63946;
+}
+
+.back-to-login {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 14px;
+}
+
+.back-to-login a {
+    color: var(--primary-purple);
+    font-weight: 700;
+    text-decoration: none;
+}
