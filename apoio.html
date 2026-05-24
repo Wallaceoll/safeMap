@@ -191,11 +191,10 @@
                 const street = tags['addr:street'] || "Endereço não disponível";
                 const number = tags['addr:housenumber'] || "S/N";
 
-                let opening = p.tags.opening_hours;
-                if (!opening) {
-                    const is24h = p.tags.amenity === 'police' || p.tags.amenity === 'hospital' || p.tags.emergency === 'yes';
-                    opening = is24h ? "Aberto 24h" : "Aberto das 08h às 18h";
-                }
+                const rawOpening = tags.opening_hours || "";
+                const is24h = rawOpening.includes("24/7") || rawOpening.includes("24h") || rawOpening.includes("24 hours") || 
+                              (!tags.opening_hours && (tags.amenity === 'police' || tags.amenity === 'hospital' || tags.emergency === 'yes'));
+                const opening = is24h ? "Aberto 24h" : (tags.opening_hours || "Aberto das 08h às 18h");
 
                 const card = document.createElement('div');
                 card.className = "resource-card";
