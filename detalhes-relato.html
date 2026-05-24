@@ -125,6 +125,15 @@
         }
 
         renderReports();
+
+        // Bloqueia acesso ao relatar se não estiver logado
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        document.querySelector('a[href="relatar.html"]')?.addEventListener('click', (e) => {
+            if (!isLoggedIn) {
+                e.preventDefault();
+                window.location.href = 'login.html';
+            }
+        });
     </script>
 </body>
 

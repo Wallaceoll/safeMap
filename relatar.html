@@ -125,6 +125,11 @@
     </div>
     <!-- Script para funcionalidades de localização, sugestões e envio de relato -->
     <script>
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        if (!isLoggedIn) {
+            window.location.href = 'login.html';
+        }
+
         // Inicializa os ícones do Lucide
         lucide.createIcons();
 

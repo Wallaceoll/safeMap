@@ -70,7 +70,7 @@
                 <button class="btn-float-action" id="btn-locate"><i data-lucide="locate-fixed" size="24"></i></button>
                 <button class="btn-float-action" id="btn-legend-trigger"><i data-lucide="info" size="24"></i></button>
             </div>
-            <a href="#" class="btn-help-center">
+            <a href="apoio.html" class="btn-help-center">
                 <i data-lucide="life-buoy" size="22"></i>
                 <span>Central de ajuda</span>
             </a>
@@ -362,10 +362,6 @@
         if (searchInput) {
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    if (!isLoggedIn) {
-                        window.location.href = 'login.html';
-                        return;
-                    }
                     const query = searchInput.value.trim();
                     if (!query) return;
 
@@ -409,10 +405,7 @@
         }
 
         const restrictedElements = [
-            document.querySelector('.search-bar input'),
-            document.querySelector('a[href="relatar.html"]'),
-            document.querySelector('a[href="apoio.html"]'),
-            document.querySelector('.btn-help-center')
+            document.querySelector('a[href="relatar.html"]')
         ];
 
         restrictedElements.forEach(el => {
@@ -423,16 +416,6 @@
                         window.location.href = 'login.html';
                     }
                 });
-
-                if (el.tagName === 'INPUT') {
-                    el.addEventListener('focus', (e) => {
-                        if (!isLoggedIn) {
-                            e.preventDefault();
-                            el.blur();
-                            window.location.href = 'login.html';
-                        }
-                    });
-                }
             }
         });
 
