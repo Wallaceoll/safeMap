@@ -46,17 +46,54 @@ function loadIncidents() {
         const wReports = incident.type === 'danger' ? Math.floor(incident.reports * 0.7) : Math.floor(incident.reports * 0.4);
         const lReports = incident.reports - wReports;
 
+        const womenDescs = [
+            "Assédio verbal no ponto de ônibus à noite.",
+            "Homem de atitude suspeita seguindo pedestres.",
+            "Importunação nas proximidades do metrô.",
+            "Relato de perseguição no início da noite.",
+            "Falta de iluminação pública favorecendo abordagens hostis."
+        ];
+        
+        const lgbtDescs = [
+            "Olhares e comentários ofensivos direcionados a casal homoafetivo.",
+            "Agressão verbal homofóbica.",
+            "Hostilidade em estabelecimento comercial da região.",
+            "Abordagem intimidadora direcionada a pessoa trans.",
+            "Comentários preconceituosos de transeuntes."
+        ];
+
+        const allReports = [];
+        
+        for (let i = 0; i < wReports; i++) {
+            const date = new Date();
+            date.setHours(date.getHours() - (i * 4 + 2));
+            allReports.push({
+                ...incident,
+                typeName: incident.type === 'danger' ? 'Alto Risco' : 'Aviso',
+                targetGroup: 'women',
+                description: womenDescs[i % womenDescs.length],
+                date: date.toISOString()
+            });
+        }
+        
+        for (let i = 0; i < lReports; i++) {
+            const date = new Date();
+            date.setHours(date.getHours() - (i * 6 + 5));
+            allReports.push({
+                ...incident,
+                typeName: incident.type === 'danger' ? 'Alto Risco' : 'Aviso',
+                targetGroup: 'lgbt',
+                description: lgbtDescs[i % lgbtDescs.length],
+                date: date.toISOString()
+            });
+        }
+
         groupedReports[key] = {
             ...incident,
             typeName: incident.type === 'danger' ? 'Alto Risco' : 'Aviso',
             womenReports: wReports,
             lgbtReports: lReports,
-            allReports: [{
-                ...incident,
-                typeName: incident.type === 'danger' ? 'Alto Risco' : 'Aviso',
-                targetGroup: 'women',
-                date: new Date().toISOString()
-            }]
+            allReports: allReports
         };
     });
 

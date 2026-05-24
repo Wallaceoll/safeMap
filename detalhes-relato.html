@@ -112,7 +112,11 @@
                             <div class="meta-icon-wrapper">
                                 <i data-lucide="users" size="18"></i>
                             </div>
-                            <span>Público afetado: ${report.targetGroup === 'women' ? 'Mulheres' : 'LGBTQ+'}</span>
+                            <span>Público afetado: ${
+                                Array.isArray(report.targetGroup)
+                                ? report.targetGroup.map(g => g === 'women' ? 'Mulheres' : 'LGBTQ+').join(' e ')
+                                : (report.targetGroup === 'women' ? 'Mulheres' : 'LGBTQ+')
+                            }</span>
                         </div>
                     </div>
                 `;
