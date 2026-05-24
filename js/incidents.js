@@ -237,39 +237,75 @@ window.openIncidentDetails = async function (data) {
     const sumRisk = (data.womenReports || 0) + (data.lgbtReports || 0);
     riskRows[2].querySelector('.level-item').innerHTML = getRiskLevel(sumRisk);
 
-    if (reportCountSpan) {
-        const count = data.relevantReports || 0;
-        const pluralText = count === 1 ? 'relato recente' : 'relatos recentes';
-        reportCountSpan.textContent = `${count} ${pluralText}`;
-
-        const reportRow = reportCountSpan.parentElement.parentElement;
-        if (reportRow) {
-            const navigateToAll = (e) => {
-                if (e) e.stopPropagation();
-                const reportsToShow = data.allReports || [data];
-                localStorage.setItem('currentDetailReports', JSON.stringify(reportsToShow));
-                window.location.href = 'detalhes-relato.html';
-            };
-
-            reportRow.style.cursor = 'pointer';
-            reportRow.onclick = navigateToAll;
-
-            const arrow = reportRow.querySelector('[data-lucide="chevron-right"], .lucide-chevron-right, svg.lucide-chevron-right');
-            if (arrow) {
-                arrow.style.cursor = 'pointer';
-                arrow.onclick = navigateToAll;
+    let dayCount = 0;
+    let nightCount = 0;
+    const reports = data.allReports || [data];
+    reports.forEach(r => {
+        if (r.date) {
+            const hour = new Date(r.date).getHours();
+            if (hour >= 6 && hour < 18) {
+                dayCount++;
+            } else {
+                nightCount++;
             }
         }
-    }
+    });
 
-    const detailsBtn = incidentBlock.querySelector('.btn-help-center');
-    if (detailsBtn) {
-        detailsBtn.onclick = (e) => {
-            e.preventDefault();
-            const reportsToShow = data.allReports || [data];
-            localStorage.setItem('currentDetailReports', JSON.stringify(reportsToShow));
-            window.location.href = 'detalhes-relato.html';
-        };
+    const container = document.getElementById('period-risk-container');
+    const iconWrapper = document.getElementById('period-risk-icon-wrapper');
+    const textSpan = document.getElementById('period-risk-text');
+    const subtextSpan = document.getElementById('period-risk-subtext');
+
+    if (container && iconWrapper && textSpan && subtextSpan) {
+        if (nightCount > dayCount) {
+            let periodIcon = 'moon';
+            let periodColor = '#6366F1';
+            let periodBg = '#EEF2FF';
+            riskText = 'Área com maior risco no período noturno';
+            
+            iconWrapper.style.width = '38px';
+            iconWrapper.style.borderRadius = '50%';
+            iconWrapper.style.gap = '0';
+            iconWrapper.style.backgroundColor = periodBg;
+            iconWrapper.style.color = periodColor;
+            iconWrapper.innerHTML = `<i id="period-risk-icon" data-lucide="${periodIcon}" size="20"></i>`;
+        } else if (dayCount > nightCount) {
+            let periodIcon = 'sun';
+            let periodColor = '#F59E0B';
+            let periodBg = '#FEF3C7';
+            riskText = 'Área com maior risco no período diurno';
+            
+            iconWrapper.style.width = '38px';
+            iconWrapper.style.borderRadius = '50%';
+            iconWrapper.style.gap = '0';
+            iconWrapper.style.backgroundColor = periodBg;
+            iconWrapper.style.color = periodColor;
+            iconWrapper.innerHTML = `<i id="period-risk-icon" data-lucide="${periodIcon}" size="20"></i>`;
+        } else {
+            riskText = 'Risco semelhante em ambos os períodos';
+            
+            iconWrapper.style.width = '54px';
+            iconWrapper.style.borderRadius = '27px';
+            iconWrapper.style.gap = '4px';
+            iconWrapper.style.backgroundColor = '#F3F4F6';
+            iconWrapper.innerHTML = `
+                <i data-lucide="sun" size="16" style="color: #F59E0B;"></i>
+                <i data-lucide="moon" size="16" style="color: #6366F1;"></i>
+            `;
+        }
+        textSpan.textContent = riskText;
+        subtextSpan.textContent = `Total de ${reports.length} ${reports.length === 1 ? 'relato' : 'relatos'} (${dayCount} de dia / ${nightCount} à noite)`;
+
+        const detailsBtn = incidentBlock.querySelector('.btn-help-center');
+        if (detailsBtn) {
+            detailsBtn.onclick = (e) => {
+                e.preventDefault();
+                localStorage.setItem('currentDetailReports', JSON.stringify(reports));
+                window.location.href = 'detalhes-relato.html';
+            };
+        }
+
+        if (window.lucide) window.lucide.createIcons();
     }
 
     incidentBlock.style.display = 'block';
