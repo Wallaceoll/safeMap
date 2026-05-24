@@ -365,6 +365,105 @@
             });
         }
 
+        function formatAddress(item, typedNumber = null) {
+            if (!item || !item.address) return item ? (item.display_name || "") : "";
+            const addr = item.address;
+            const street = addr.road || addr.pedestrian || addr.construction || addr.path || "";
+            const number = addr.house_number || addr.building || typedNumber || "";
+            const numberStr = number ? `, ${number}` : "";
+            
+            let suburb = addr.suburb || addr.neighbourhood || addr.city_district || addr.quarter || addr.subdivision || addr.residential || "";
+            if (!suburb) {
+                const parts = (item.display_name || "").split(',').map(p => p.trim());
+                const spIndex = parts.findIndex(p => p === "São Paulo" || p === "Município de São Paulo");
+                if (spIndex > 0) {
+                    suburb = parts[spIndex - 1];
+                }
+            }
+            suburb = suburb || "Bairro não informado";
+
+            const city = addr.city || addr.town || "São Paulo";
+            const state = addr.state === "São Paulo" ? "SP" : (addr.state || "SP");
+            
+            if (!street) {
+                const locName = item.display_name.split(',')[0];
+                return `${locName}${numberStr ? ' ' + numberStr : ''} - ${suburb}, ${city} - ${state}`;
+            }
+            return `${street}${numberStr} - ${suburb}, ${city} - ${state}`;
+        }
+
+        async function searchAddressSP(query) {
+            const numberMatch = query.match(/\b\d+\b/);
+            const typedNumber = numberMatch ? numberMatch[0] : null;
+
+            const isSPCity = (item) => {
+                if (!item || !item.address) return false;
+                const addr = item.address;
+                const city = addr.city || addr.town || addr.municipality || addr.city_district || "";
+                const cityLower = city.toLowerCase();
+                return cityLower === "são paulo" || cityLower === "sao paulo" || cityLower === "município de são paulo";
+            };
+
+            let data = [];
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
+                    headers: {
+                        'Accept-Language': 'pt-BR',
+                        'User-Agent': 'SafeMap/1.0'
+                    }
+                });
+                data = await res.json();
+            } catch (e) {
+                console.error("Geocoding fetch error:", e);
+            }
+
+            let filtered = data.filter(isSPCity);
+
+            if (filtered.length === 0 && typedNumber) {
+                const queryWithoutNumber = query.replace(/\b\d+\b/g, '').replace(/,\s*,/g, ',').trim();
+                if (queryWithoutNumber.length > 2) {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryWithoutNumber)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
+                            headers: {
+                                'Accept-Language': 'pt-BR',
+                                'User-Agent': 'SafeMap/1.0'
+                            }
+                        });
+                        const dataFallback = await res.json();
+                        filtered = dataFallback.filter(isSPCity);
+                    } catch (e) {
+                        console.error("Geocoding fallback fetch error:", e);
+                    }
+                }
+            }
+
+            if (filtered.length === 0) {
+                const parts = query.split(/[,-]/);
+                if (parts.length > 1) {
+                    const mainPart = parts[0].trim();
+                    if (mainPart.length > 2 && mainPart !== query) {
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mainPart)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
+                                headers: {
+                                    'Accept-Language': 'pt-BR',
+                                    'User-Agent': 'SafeMap/1.0'
+                                }
+                            });
+                            const dataFallback2 = await res.json();
+                            filtered = dataFallback2.filter(isSPCity);
+                        } catch (e) {
+                            console.error("Geocoding fallback 2 fetch error:", e);
+                        }
+                    }
+                }
+            }
+
+            return {
+                results: filtered,
+                typedNumber: typedNumber
+            };
+        }
+
         const searchInput = document.getElementById('main-search-input');
         if (searchInput) {
             searchInput.addEventListener('keypress', (e) => {
@@ -375,30 +474,25 @@
                     searchInput.disabled = true;
                     const originalPlaceholder = searchInput.placeholder;
                     searchInput.placeholder = "Buscando...";
-                    searchInput.value = '';
 
-                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=1`, {
-                        headers: {
-                            'Accept-Language': 'pt-BR',
-                            'User-Agent': 'SafeMap/1.0'
-                        }
-                    })
-                        .then(res => res.json())
-                        .then(data => {
+                    searchAddressSP(query)
+                        .then(({ results, typedNumber }) => {
                             searchInput.disabled = false;
                             searchInput.placeholder = originalPlaceholder;
 
-                            if (data && data.length > 0) {
-                                const lat = parseFloat(data[0].lat);
-                                const lon = parseFloat(data[0].lon);
+                            const result = results[0];
+                            if (result) {
+                                const lat = parseFloat(result.lat);
+                                const lon = parseFloat(result.lon);
 
                                 window.safeMap.map.flyTo([lat, lon], 16, { animate: true, duration: 1.5 });
 
                                 if (window.safeMap.updateUserLocation) {
                                     window.safeMap.updateUserLocation(lat, lon);
                                 }
+                                searchInput.value = formatAddress(result, typedNumber);
                             } else {
-                                alert('Local não encontrado. Tente digitar de outra forma.');
+                                alert('Local não encontrado na cidade de São Paulo. Tente digitar de outra forma.');
                             }
                         })
                         .catch(err => {

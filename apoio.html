@@ -55,6 +55,105 @@
     </div>
 
     <script>
+        function formatAddress(item, typedNumber = null) {
+            if (!item || !item.address) return item ? (item.display_name || "") : "";
+            const addr = item.address;
+            const street = addr.road || addr.pedestrian || addr.construction || addr.path || "";
+            const number = addr.house_number || addr.building || typedNumber || "";
+            const numberStr = number ? `, ${number}` : "";
+            
+            let suburb = addr.suburb || addr.neighbourhood || addr.city_district || addr.quarter || addr.subdivision || addr.residential || "";
+            if (!suburb) {
+                const parts = (item.display_name || "").split(',').map(p => p.trim());
+                const spIndex = parts.findIndex(p => p === "São Paulo" || p === "Município de São Paulo");
+                if (spIndex > 0) {
+                    suburb = parts[spIndex - 1];
+                }
+            }
+            suburb = suburb || "Bairro não informado";
+
+            const city = addr.city || addr.town || "São Paulo";
+            const state = addr.state === "São Paulo" ? "SP" : (addr.state || "SP");
+            
+            if (!street) {
+                const locName = item.display_name.split(',')[0];
+                return `${locName}${numberStr ? ' ' + numberStr : ''} - ${suburb}, ${city} - ${state}`;
+            }
+            return `${street}${numberStr} - ${suburb}, ${city} - ${state}`;
+        }
+
+        async function searchAddressSP(query) {
+            const numberMatch = query.match(/\b\d+\b/);
+            const typedNumber = numberMatch ? numberMatch[0] : null;
+
+            const isSPCity = (item) => {
+                if (!item || !item.address) return false;
+                const addr = item.address;
+                const city = addr.city || addr.town || addr.municipality || addr.city_district || "";
+                const cityLower = city.toLowerCase();
+                return cityLower === "são paulo" || cityLower === "sao paulo" || cityLower === "município de são paulo";
+            };
+
+            let data = [];
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
+                    headers: {
+                        'Accept-Language': 'pt-BR',
+                        'User-Agent': 'SafeMap/1.0'
+                    }
+                });
+                data = await res.json();
+            } catch (e) {
+                console.error("Geocoding fetch error:", e);
+            }
+
+            let filtered = data.filter(isSPCity);
+
+            if (filtered.length === 0 && typedNumber) {
+                const queryWithoutNumber = query.replace(/\b\d+\b/g, '').replace(/,\s*,/g, ',').trim();
+                if (queryWithoutNumber.length > 2) {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryWithoutNumber)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
+                            headers: {
+                                'Accept-Language': 'pt-BR',
+                                'User-Agent': 'SafeMap/1.0'
+                            }
+                        });
+                        const dataFallback = await res.json();
+                        filtered = dataFallback.filter(isSPCity);
+                    } catch (e) {
+                        console.error("Geocoding fallback fetch error:", e);
+                    }
+                }
+            }
+
+            if (filtered.length === 0) {
+                const parts = query.split(/[,-]/);
+                if (parts.length > 1) {
+                    const mainPart = parts[0].trim();
+                    if (mainPart.length > 2 && mainPart !== query) {
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mainPart)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
+                                headers: {
+                                    'Accept-Language': 'pt-BR',
+                                    'User-Agent': 'SafeMap/1.0'
+                                }
+                            });
+                            const dataFallback2 = await res.json();
+                            filtered = dataFallback2.filter(isSPCity);
+                        } catch (e) {
+                            console.error("Geocoding fallback 2 fetch error:", e);
+                        }
+                    }
+                }
+            }
+
+            return {
+                results: filtered,
+                typedNumber: typedNumber
+            };
+        }
+
         let userCoords = null;
         const listContainer = document.getElementById('resource-list');
         const searchInput = document.getElementById('resource-search');
@@ -86,7 +185,7 @@
 
             pois.forEach(p => {
                 const name = p.tags.name || p.tags.operator || "Recurso de Apoio";
-                const suburb = p.tags['addr:suburb'] || p.tags['addr:neighbourhood'] || "Bairro não informado";
+                const suburb = p.tags['addr:suburb'] || p.tags['addr:neighbourhood'] || p.tags['addr:district'] || p.tags['addr:city_district'] || "Bairro não informado";
                 const city = p.tags['addr:city'] || "São Paulo";
                 const street = p.tags['addr:street'] || "Endereço não disponível";
                 const number = p.tags['addr:housenumber'] || "S/N";
@@ -130,7 +229,8 @@
 
         let debounceTimer;
         searchInput.addEventListener('input', (e) => {
-            const query = e.target.value;
+            const query = e.target.value.trim();
+
             clearTimeout(debounceTimer);
             if (query.length < 4) {
                 suggestionsBox.style.display = 'none';
@@ -139,25 +239,19 @@
 
             debounceTimer = setTimeout(async () => {
                 try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`);
-                    const data = await res.json();
-                    
-                    const filtered = data.filter(item => {
-                        const addr = item.address || {};
-                        const city = addr.city || addr.town || addr.municipality;
-                        return city === "São Paulo";
-                    });
+                    const { results, typedNumber } = await searchAddressSP(query);
 
-                    if (filtered.length > 0) {
+                    if (results.length > 0) {
                         suggestionsBox.innerHTML = '';
-                        filtered.slice(0, 5).forEach(item => {
+                        results.slice(0, 5).forEach(item => {
                             const div = document.createElement('div');
                             div.style.padding = '12px';
                             div.style.cursor = 'pointer';
                             div.style.borderBottom = '1px solid #EEE';
-                            div.textContent = item.display_name;
+                            const formatted = formatAddress(item, typedNumber);
+                            div.textContent = formatted;
                             div.onclick = () => {
-                                searchInput.value = item.display_name;
+                                searchInput.value = formatted;
                                 suggestionsBox.style.display = 'none';
                                 loadApoio(parseFloat(item.lat), parseFloat(item.lon), item.display_name.split(',')[0]);
                             };
@@ -194,24 +288,14 @@
             listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Buscando localização...</div>';
 
             try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
-                    headers: {
-                        'Accept-Language': 'pt-BR',
-                        'User-Agent': 'SafeMap/1.0'
-                    }
-                });
-                const data = await res.json();
-                
-                const result = data.find(item => {
-                    const addr = item.address || {};
-                    const city = addr.city || addr.town || addr.municipality;
-                    return city === "São Paulo";
-                });
+                const { results, typedNumber } = await searchAddressSP(query);
+                const result = results[0];
 
                 if (result) {
                     const lat = parseFloat(result.lat);
                     const lon = parseFloat(result.lon);
                     const displayName = result.display_name.split(',')[0];
+                    searchInput.value = formatAddress(result, typedNumber);
                     await loadApoio(lat, lon, displayName);
                 } else {
                     statusText.textContent = `Região não encontrada em São Paulo. Tente outra busca.`;
