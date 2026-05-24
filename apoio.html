@@ -139,11 +139,18 @@
 
             debounceTimer = setTimeout(async () => {
                 try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=br`);
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`);
                     const data = await res.json();
-                    if (data.length > 0) {
+                    
+                    const filtered = data.filter(item => {
+                        const addr = item.address || {};
+                        const city = addr.city || addr.town || addr.municipality;
+                        return city === "São Paulo";
+                    });
+
+                    if (filtered.length > 0) {
                         suggestionsBox.innerHTML = '';
-                        data.forEach(item => {
+                        filtered.slice(0, 5).forEach(item => {
                             const div = document.createElement('div');
                             div.style.padding = '12px';
                             div.style.cursor = 'pointer';
@@ -157,6 +164,8 @@
                             suggestionsBox.appendChild(div);
                         });
                         suggestionsBox.style.display = 'block';
+                    } else {
+                        suggestionsBox.style.display = 'none';
                     }
                 } catch (e) { console.error(e); }
             }, 500);
@@ -185,21 +194,28 @@
             listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Buscando localização...</div>';
 
             try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=1`, {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
                     headers: {
                         'Accept-Language': 'pt-BR',
                         'User-Agent': 'SafeMap/1.0'
                     }
                 });
                 const data = await res.json();
-                if (data && data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lon = parseFloat(data[0].lon);
-                    const displayName = data[0].display_name.split(',')[0];
+                
+                const result = data.find(item => {
+                    const addr = item.address || {};
+                    const city = addr.city || addr.town || addr.municipality;
+                    return city === "São Paulo";
+                });
+
+                if (result) {
+                    const lat = parseFloat(result.lat);
+                    const lon = parseFloat(result.lon);
+                    const displayName = result.display_name.split(',')[0];
                     await loadApoio(lat, lon, displayName);
                 } else {
-                    statusText.textContent = `Região não encontrada. Tente outra busca.`;
-                    listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Local não encontrado. Tente digitar de outra forma (ex: "Paulista" ou "Consolação").</div>';
+                    statusText.textContent = `Região não encontrada em São Paulo. Tente outra busca.`;
+                    listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Local não encontrado na cidade de São Paulo. Tente digitar de outra forma (ex: "Paulista" ou "Consolação").</div>';
                 }
             } catch (err) {
                 console.error('Geocoding error:', err);
@@ -257,11 +273,18 @@
             statusText.textContent = `Mostrando recursos em ${label}`;
         }
 
+        function normalizeString(str) {
+            return str
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+        }
+
         function renderResources(filter = "") {
-            const searchQuery = filter || searchInput.value;
+            const searchQuery = normalizeString(filter || searchInput.value);
             const filtered = currentPois.filter(p => {
-                const name = (p.tags.name || p.tags.operator || "").toLowerCase();
-                return name.includes(searchQuery.toLowerCase());
+                const name = normalizeString(p.tags.name || p.tags.operator || "");
+                return name.includes(searchQuery);
             });
             renderPois(filtered);
         }
