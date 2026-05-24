@@ -46,20 +46,20 @@ function loadIncidents() {
         const wReports = incident.type === 'danger' ? Math.floor(incident.reports * 0.7) : Math.floor(incident.reports * 0.4);
         const lReports = incident.reports - wReports;
 
-        const womenDescs = [
-            "Assédio verbal no ponto de ônibus à noite.",
-            "Homem de atitude suspeita seguindo pedestres.",
-            "Importunação nas proximidades do metrô.",
-            "Relato de perseguição no início da noite.",
-            "Falta de iluminação pública favorecendo abordagens hostis."
+        const womenReportsData = [
+            { typeName: "Assédio", desc: "Assédio verbal no ponto de ônibus à noite." },
+            { typeName: "Assédio", desc: "Homem de atitude suspeita seguindo pedestres." },
+            { typeName: "Importunação Sexual", desc: "Importunação nas proximidades do metrô." },
+            { typeName: "Assédio", desc: "Relato de perseguição no início da noite." },
+            { typeName: "Assédio", desc: "Falta de iluminação pública favorecendo abordagens hostis." }
         ];
         
-        const lgbtDescs = [
-            "Olhares e comentários ofensivos direcionados a casal homoafetivo.",
-            "Agressão verbal homofóbica.",
-            "Hostilidade em estabelecimento comercial da região.",
-            "Abordagem intimidadora direcionada a pessoa trans.",
-            "Comentários preconceituosos de transeuntes."
+        const lgbtReportsData = [
+            { typeName: "Agressão Verbal", desc: "Olhares e comentários ofensivos direcionados a casal homoafetivo." },
+            { typeName: "Agressão Verbal", desc: "Agressão verbal homofóbica." },
+            { typeName: "Assédio", desc: "Hostilidade em estabelecimento comercial da região." },
+            { typeName: "Agressão Verbal", desc: "Abordagem intimidadora direcionada a pessoa trans." },
+            { typeName: "Agressão Verbal", desc: "Comentários preconceituosos de transeuntes." }
         ];
 
         const allReports = [];
@@ -67,11 +67,12 @@ function loadIncidents() {
         for (let i = 0; i < wReports; i++) {
             const date = new Date();
             date.setHours(date.getHours() - (i * 4 + 2));
+            const dataItem = womenReportsData[i % womenReportsData.length];
             allReports.push({
                 ...incident,
-                typeName: incident.type === 'danger' ? 'Alto Risco' : 'Aviso',
+                typeName: dataItem.typeName,
                 targetGroup: 'women',
-                description: womenDescs[i % womenDescs.length],
+                description: dataItem.desc,
                 date: date.toISOString()
             });
         }
@@ -79,11 +80,12 @@ function loadIncidents() {
         for (let i = 0; i < lReports; i++) {
             const date = new Date();
             date.setHours(date.getHours() - (i * 6 + 5));
+            const dataItem = lgbtReportsData[i % lgbtReportsData.length];
             allReports.push({
                 ...incident,
-                typeName: incident.type === 'danger' ? 'Alto Risco' : 'Aviso',
+                typeName: dataItem.typeName,
                 targetGroup: 'lgbt',
-                description: lgbtDescs[i % lgbtDescs.length],
+                description: dataItem.desc,
                 date: date.toISOString()
             });
         }
@@ -101,6 +103,8 @@ function loadIncidents() {
         if (!report.lat || !report.lng) return;
 
         const key = `${parseFloat(report.lat).toFixed(4)}-${parseFloat(report.lng).toFixed(4)}`;
+        const isWomen = Array.isArray(report.targetGroup) ? report.targetGroup.includes('women') : report.targetGroup === 'women';
+        const isLgbt = Array.isArray(report.targetGroup) ? report.targetGroup.includes('lgbt') : report.targetGroup === 'lgbt';
 
         if (!groupedReports[key]) {
             groupedReports[key] = {
@@ -111,14 +115,14 @@ function loadIncidents() {
                 address: report.address || 'Localização relatada',
                 district: report.district || 'São Paulo',
                 reports: 1,
-                womenReports: report.targetGroup === 'women' ? 1 : 0,
-                lgbtReports: report.targetGroup === 'lgbt' ? 1 : 0,
+                womenReports: isWomen ? 1 : 0,
+                lgbtReports: isLgbt ? 1 : 0,
                 allReports: [report]
             };
         } else {
             groupedReports[key].reports++;
-            if (report.targetGroup === 'women') groupedReports[key].womenReports++;
-            if (report.targetGroup === 'lgbt') groupedReports[key].lgbtReports++;
+            if (isWomen) groupedReports[key].womenReports++;
+            if (isLgbt) groupedReports[key].lgbtReports++;
             if (report.type === 'danger') {
                 groupedReports[key].type = 'danger';
                 groupedReports[key].typeName = report.typeName || 'Alto Risco';

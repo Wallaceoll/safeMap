@@ -265,7 +265,7 @@
         async function handleReport(e) {
             e.preventDefault();
             const type = document.getElementById('report-type').value;
-            const desc = document.getElementById('report-desc').value;
+            const desc = document.getElementById('report-desc').value.trim();
             const loc = document.getElementById('report-loc').value;
             const datetime = document.getElementById('report-datetime').value;
             const targetGroup = Array.from(document.querySelectorAll('input[name="target-group"]:checked')).map(el=>el.value);

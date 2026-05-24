@@ -66,6 +66,10 @@
 
                 let timeAgo = 'Recente';
                 let dateFull = 'Data não informada';
+                let periodIcon = 'sun';
+                let periodColor = '#F59E0B'; // Yellow/Orange
+                let periodText = 'Período diurno';
+
                 if (report.date) {
                     const now = new Date();
                     const reportDate = new Date(report.date);
@@ -79,7 +83,17 @@
 
                     dateFull = reportDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
                     dateFull += ` às ${reportDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+                    const hours = reportDate.getHours();
+                    if (hours < 6 || hours >= 18) {
+                        periodIcon = 'moon';
+                        periodColor = '#6366F1'; // Indigo/Purple
+                        periodText = 'Período noturno';
+                    }
                 }
+
+                const isWarning = report.type === 'warning';
+                const badgeStyle = isWarning ? 'background-color: #FEF3C7; color: #D97706;' : 'background-color: #FEE2E2; color: #EF4444;';
 
                 const description = report.description && report.description.trim() !== ""
                     ? report.description
@@ -87,8 +101,11 @@
 
                 card.innerHTML = `
                     <div class="card-header">
-                        <span class="type-badge">${typeLabel}</span>
-                        <span class="time-ago">${timeAgo}</span>
+                        <span class="type-badge" style="${badgeStyle}">${typeLabel}</span>
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--text-muted);">
+                            <i data-lucide="${periodIcon}" size="16" style="color: ${periodColor};" title="${periodText}"></i>
+                            <span class="time-ago">${timeAgo}</span>
+                        </div>
                     </div>
 
                     <h2 class="report-title">Ocorrência em ${report.address}</h2>
