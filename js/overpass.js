@@ -61,7 +61,6 @@ async function fetchOverpassPOIs(bbox = DEFAULT_BBOX) {
         }
     }
 
-    // Direct fallback (or primary for localhost)
     if (!success) {
         try {
             console.log(`[overpass] Tentando buscar diretamente da API pública | bbox: ${bbox}`);

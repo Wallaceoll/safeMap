@@ -13,6 +13,13 @@ const incidentLayer = L.markerClusterGroup({
     }
 });
 
+const riskZoneLayer = L.layerGroup();
+if (!map.getPane('riskZones')) {
+    map.createPane('riskZones');
+    map.getPane('riskZones').style.zIndex = 350;
+}
+map.addLayer(riskZoneLayer);
+
 const staticIncidents = [
     { lat: -23.5855, lng: -46.6836, type: 'danger', address: 'Av. Brigadeiro Faria Lima, 1200', district: 'Itaim Bibi', reports: 8 },
     { lat: -23.5616, lng: -46.6559, type: 'danger', address: 'Av. Paulista, 1578', district: 'Bela Vista', reports: 12 },
@@ -143,25 +150,91 @@ function loadIncidents() {
 
 window.safeMap.renderIncidents = function () {
     incidentLayer.clearLayers();
+    riskZoneLayer.clearLayers();
 
     const womenActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(1).active');
     const lgbtActive = document.querySelector('.category-chip[data-type="incidents"]:nth-child(2).active');
 
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
+
+    const renderedCenters = [];
+    const sortedReports = Object.values(window.safeMap.groupedReports)
+        .map(report => {
+            let areaReports = 0;
+            Object.values(window.safeMap.groupedReports).forEach(other => {
+                let otherReports = 0;
+                if (womenActive && lgbtActive) {
+                    otherReports = (other.womenReports || 0) + (other.lgbtReports || 0);
+                } else if (womenActive) {
+                    otherReports = other.womenReports || 0;
+                } else if (lgbtActive) {
+                    otherReports = other.lgbtReports || 0;
+                }
+
+                if (otherReports > 0 && calculateDistance(report.lat, report.lng, other.lat, other.lng) <= 1.0) {
+                    areaReports += otherReports;
+                }
+            });
+            return { ...report, areaReports };
+        })
+        .filter(r => r.areaReports > 0)
+        .sort((a, b) => b.areaReports - a.areaReports);
+
+    sortedReports.forEach(r => {
+        const tooClose = renderedCenters.some(c => calculateDistance(r.lat, r.lng, c.lat, c.lng) <= 0.4);
+        if (tooClose) return;
+
+        renderedCenters.push({ lat: r.lat, lng: r.lng });
+
+        let color = '#10B981';
+        let fillOpacity = 0.08;
+        let radius = 350;
+
+        if (r.areaReports >= 10) {
+            color = '#EF4444';
+            fillOpacity = 0.15;
+            radius = 600;
+        } else if (r.areaReports >= 4) {
+            color = '#F59E0B';
+            fillOpacity = 0.12;
+            radius = 450;
+        }
+
+        const circle = L.circle([r.lat, r.lng], {
+            radius: radius,
+            color: color,
+            weight: 1.5,
+            opacity: 0.4,
+            fillColor: color,
+            fillOpacity: fillOpacity,
+            dashArray: '4, 4',
+            interactive: false,
+            pane: 'riskZones'
+        });
+
+        riskZoneLayer.addLayer(circle);
+    });
+
     Object.values(window.safeMap.groupedReports).forEach(report => {
         let relevantReports = 0;
-        let riskValueForColor = 0;
         let womenR = report.womenReports || 0;
         let lgbtR = report.lgbtReports || 0;
 
         if (womenActive && lgbtActive) {
             relevantReports = womenR + lgbtR;
-            riskValueForColor = womenR + lgbtR;
         } else if (womenActive) {
             relevantReports = womenR;
-            riskValueForColor = womenR;
         } else if (lgbtActive) {
             relevantReports = lgbtR;
-            riskValueForColor = lgbtR;
         }
 
         if (relevantReports === 0) return;
@@ -325,3 +398,4 @@ loadIncidents();
 
 window.safeMap.layers = window.safeMap.layers || {};
 window.safeMap.layers.incidents = incidentLayer;
+window.safeMap.layers.riskZones = riskZoneLayer;

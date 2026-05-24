@@ -10,16 +10,23 @@ document.querySelectorAll('.category-chip').forEach(chip => {
         const supportActive = document.querySelector('.category-chip[data-type="support"].active');
 
         const incidentLayer = window.safeMap.layers.incidents;
+        const riskZoneLayer = window.safeMap.layers.riskZones;
         const supportLayers = window.safeMap.layers.support || [];
 
         if (anyIncidentActive) {
-            if (!map.hasLayer(incidentLayer)) {
+            if (incidentLayer && !map.hasLayer(incidentLayer)) {
                 map.addLayer(incidentLayer);
+            }
+            if (riskZoneLayer && !map.hasLayer(riskZoneLayer)) {
+                map.addLayer(riskZoneLayer);
             }
             if (window.safeMap.renderIncidents) window.safeMap.renderIncidents();
         } else {
-            if (map.hasLayer(incidentLayer)) {
+            if (incidentLayer && map.hasLayer(incidentLayer)) {
                 map.removeLayer(incidentLayer);
+            }
+            if (riskZoneLayer && map.hasLayer(riskZoneLayer)) {
+                map.removeLayer(riskZoneLayer);
             }
         }
 
