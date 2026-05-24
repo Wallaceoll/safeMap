@@ -95,8 +95,10 @@
             </a>
         </nav>
     </div>
+    <script src="js/api.js"></script>
     <script>
         lucide.createIcons();
+
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
             const isPassword = input.type === 'password';
@@ -105,53 +107,43 @@
             lucide.createIcons();
         }
 
-        function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
-        }
+        // Redireciona se já estiver logado
+        if (smGetToken()) { location.href = 'index.html'; }
 
-        function handleCadastro(e) {
+        async function handleCadastro(e) {
             e.preventDefault();
-            const name = document.getElementById('fullname').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+
+            const name            = document.getElementById('fullname').value.trim();
+            const email           = document.getElementById('email').value.trim();
+            const password        = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
-            const termsAccepted = document.getElementById('terms').checked;
+            const termsAccepted   = document.getElementById('terms').checked;
+            const btn = e.target.querySelector('button[type="submit"]');
 
             if (!name || !email || !password || !confirmPassword) {
-                alert('Por favor, preencha todos os campos obrigatórios.');
-                return;
+                alert('Por favor, preencha todos os campos obrigatórios.'); return;
             }
-
-            if (!validateEmail(email)) {
-                alert('Por favor, insira um e-mail válido (ex: usuario@dominio.com).');
-                return;
-            }
-
             if (password !== confirmPassword) {
-                alert('As senhas não coincidem.');
-                return;
+                alert('As senhas não coincidem.'); return;
             }
             if (!termsAccepted) {
-                alert('Você deve concordar com os termos para criar uma conta.');
-                return;
+                alert('Você deve concordar com os termos para criar uma conta.'); return;
+            }
+            if (password.length < 8) {
+                alert('A senha deve ter pelo menos 8 caracteres.'); return;
             }
 
-            if (password.length < 6) {
-                alert('A senha deve ter pelo menos 6 caracteres.');
-                return;
+            btn.disabled = true;
+            btn.textContent = 'Criando conta...';
+
+            try {
+                await smCadastrar(name, email, password, confirmPassword);
+                location.href = 'index.html';
+            } catch (err) {
+                alert(err.message);
+                btn.disabled = false;
+                btn.textContent = 'Criar conta';
             }
-
-            const userData = {
-                email: email,
-                password: password,
-                name: name
-            };
-            localStorage.setItem('userData', JSON.stringify(userData));
-
-
-            localStorage.setItem('isLoggedIn', 'true');
-            location.href = 'index.html';
         }
     </script>
 </body>

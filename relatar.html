@@ -124,11 +124,10 @@
         </nav>
     </div>
 
+    <script src="js/api.js"></script>
     <script>
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        if (!isLoggedIn) {
-            window.location.href = 'login.html';
-        }
+        // Guarda de rota — exige JWT do banco (não apenas isLoggedIn local)
+        if (!smGetToken()) { window.location.href = 'login.html'; }
 
         lucide.createIcons();
 
@@ -257,18 +256,33 @@
             }
         }
 
+        // Mapa de valores do select → enum do backend
+        const TIPO_MAP = {
+            'assedio':             'ASSEDIO',
+            'importunacao-sexual': 'IMPORTUNACAO_SEXUAL',
+            'agressao-fisica':     'AGRESSAO_FISICA',
+            'agressao-verbal':     'AGRESSAO_VERBAL'
+        };
+
+        // Mapa de valores dos checkboxes → enum do backend
+        const PUBLICO_MAP = { 'women': 'MULHERES', 'lgbt': 'LGBT' };
+
         async function handleReport(e) {
             e.preventDefault();
-            const type = document.getElementById('report-type').value;
-            const desc = document.getElementById('report-desc').value.trim();
-            const loc = document.getElementById('report-loc').value;
+
+            const type     = document.getElementById('report-type').value;
+            const desc     = document.getElementById('report-desc').value.trim();
+            const loc      = document.getElementById('report-loc').value;
             const datetime = document.getElementById('report-datetime').value;
             const targetGroup = Array.from(document.querySelectorAll('input[name="target-group"]:checked')).map(el => el.value);
+            const btn = e.target.querySelector('button[type="submit"]');
+
             if (targetGroup.length === 0) {
                 alert("Por favor, selecione pelo menos um público-alvo.");
                 return;
             }
 
+            // ── Resolve coordenadas (mesma lógica de antes) ──────────
             let reportLat = currentCoords ? currentCoords.lat : null;
             let reportLng = currentCoords ? currentCoords.lng : null;
 
@@ -290,27 +304,46 @@
                 reportLng = -46.6333 + (Math.random() * 0.02 - 0.01);
             }
 
-            const typeSelect = document.getElementById('report-type');
-            const typeName = typeSelect.options[typeSelect.selectedIndex].text;
+            // ── Monta payload para o backend ─────────────────────────
+            const tipoOcorrencia = TIPO_MAP[type] || type.toUpperCase();
+            const publicoAlvo    = targetGroup.map(v => PUBLICO_MAP[v] || v.toUpperCase());
+            // Converte "YYYY-MM-DDTHH:MM" → "YYYY-MM-DDTHH:MM:SS" (LocalDateTime)
+            const dataHora = datetime.length === 16 ? datetime + ':00' : datetime;
 
-            const isDangerType = type === 'assedio' || type === 'importunacao-sexual' || type === 'agressao-fisica';
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
 
-            const newReport = {
-                lat: reportLat,
-                lng: reportLng,
-                type: isDangerType ? 'danger' : 'warning',
-                typeName: typeName,
-                description: desc,
-                address: loc,
-                targetGroup: targetGroup,
-                date: datetime
-            };
+            try {
+                await smCriarOcorrencia({
+                    tipoOcorrencia,
+                    publicoAlvo,
+                    descricao:  desc || '',
+                    endereco:   loc  || '',
+                    latitude:   reportLat,
+                    longitude:  reportLng,
+                    dataHora
+                });
 
-            const reports = JSON.parse(localStorage.getItem('userReports') || '[]');
-            reports.push(newReport);
-            localStorage.setItem('userReports', JSON.stringify(reports));
+                // Também salva localmente para exibição imediata no mapa antes de recarregar
+                const typeSelect = document.getElementById('report-type');
+                const isDangerType = type === 'assedio' || type === 'importunacao-sexual' || type === 'agressao-fisica';
+                const localReport = {
+                    lat: reportLat, lng: reportLng,
+                    type: isDangerType ? 'danger' : 'warning',
+                    typeName: typeSelect.options[typeSelect.selectedIndex].text,
+                    description: desc, address: loc, targetGroup, date: datetime
+                };
+                const reports = JSON.parse(localStorage.getItem('userReports') || '[]');
+                reports.push(localReport);
+                localStorage.setItem('userReports', JSON.stringify(reports));
 
-            window.location.href = 'index.html?success=true';
+                window.location.href = 'index.html?success=true';
+
+            } catch (err) {
+                alert(err.message);
+                btn.disabled = false;
+                btn.textContent = 'Enviar ocorrência';
+            }
         }
     </script>
 </body>

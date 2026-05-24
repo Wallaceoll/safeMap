@@ -299,6 +299,7 @@
         </div>
     </div>
 
+    <script src="js/api.js"></script>
     <script src="js/map.js?v=1.1"></script>
     <script src="js/location.js?v=1.1"></script>
     <script src="js/overpass.js?v=2.0"></script>
@@ -347,11 +348,10 @@
             if (visitorNotice) visitorNotice.style.display = 'none';
             if (userBtn) {
                 userBtn.addEventListener('click', (e) => {
-                    if (confirm('Deseja sair da sua conta?')) {
-                        localStorage.removeItem('isLoggedIn');
-                        location.reload();
-                    }
                     e.preventDefault();
+                    if (confirm('Deseja sair da sua conta?')) {
+                        smLogout(); // limpa token JWT + isLoggedIn e redireciona para login
+                    }
                 });
             }
         } else {

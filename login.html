@@ -85,8 +85,10 @@
             </a>
         </nav>
     </div>
+    <script src="js/api.js"></script>
     <script>
         lucide.createIcons();
+
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
             const isPassword = input.type === 'password';
@@ -95,59 +97,48 @@
             lucide.createIcons();
         }
 
-        function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(email);
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
-            const rememberMe = document.getElementById('remember-me');
-
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-
-            if (!email || !password) {
-                alert('Por favor, preencha o e-mail e a senha.');
-                return;
-            }
-
-            if (password.length < 6) {
-                alert('A senha deve ter pelo menos 6 caracteres.');
-                return;
-            }
-
-            if (!validateEmail(email)) {
-                alert('Por favor, insira um e-mail válido (ex: usuario@dominio.com).');
-                return;
-            }
-
-            const savedData = JSON.parse(localStorage.getItem('userData'));
-
-            if (!savedData || email !== savedData.email || password !== savedData.password) {
-                alert('E-mail ou senha incorretos. Por favor, verifique seus dados e tente novamente');
-                return;
-            }
-
-            if (rememberMe.checked) {
-                localStorage.setItem('rememberedEmail', email);
-                localStorage.setItem('rememberMe', 'true');
-            } else {
-                localStorage.removeItem('rememberedEmail');
-                localStorage.removeItem('rememberMe');
-            }
-
-            localStorage.setItem('isLoggedIn', 'true');
-            location.href = 'index.html';
-        }
-
+        // Pré-preenche e-mail lembrado
         const savedEmail = localStorage.getItem('rememberedEmail');
         const wasRemembered = localStorage.getItem('rememberMe') === 'true';
         if (savedEmail && wasRemembered) {
             document.getElementById('email').value = savedEmail;
             document.getElementById('remember-me').checked = true;
+        }
+
+        // Redireciona se já estiver logado
+        if (smGetToken()) { location.href = 'index.html'; }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember-me');
+            const btn = e.target.querySelector('button[type="submit"]');
+
+            if (!email || !password) { alert('Por favor, preencha o e-mail e a senha.'); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+
+            try {
+                await smLogin(email, password);
+
+                if (rememberMe.checked) {
+                    localStorage.setItem('rememberedEmail', email);
+                    localStorage.setItem('rememberMe', 'true');
+                } else {
+                    localStorage.removeItem('rememberedEmail');
+                    localStorage.removeItem('rememberMe');
+                }
+
+                location.href = 'index.html';
+
+            } catch (err) {
+                alert(err.message);
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
         }
     </script>
 </body>
