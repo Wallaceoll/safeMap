@@ -225,8 +225,8 @@ window.openIncidentDetails = async function (data) {
     if (detailsBtn) {
         detailsBtn.onclick = (e) => {
             e.preventDefault();
-            const lastReport = data.allReports ? data.allReports[data.allReports.length - 1] : data;
-            localStorage.setItem('currentDetailReports', JSON.stringify([lastReport]));
+            const reportsToShow = data.allReports || [data];
+            localStorage.setItem('currentDetailReports', JSON.stringify(reportsToShow));
             window.location.href = 'detalhes-relato.html';
         };
     }
