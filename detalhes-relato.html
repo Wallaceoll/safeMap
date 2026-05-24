@@ -92,16 +92,13 @@
                     }
                 }
 
-                const isWarning = report.type === 'warning';
-                const badgeStyle = isWarning ? 'background-color: #FEF3C7; color: #D97706;' : 'background-color: #FEE2E2; color: #EF4444;';
-
                 const description = report.description && report.description.trim() !== ""
                     ? report.description
                     : "O usuário preferiu não descrever o ocorrido.";
 
                 card.innerHTML = `
                     <div class="card-header">
-                        <span class="type-badge" style="${badgeStyle}">${typeLabel}</span>
+                        <span class="type-badge">${typeLabel}</span>
                         <div style="display: flex; align-items: center; gap: 6px; color: var(--text-muted);">
                             <i data-lucide="${periodIcon}" size="16" style="color: ${periodColor};" title="${periodText}"></i>
                             <span class="time-ago">${timeAgo}</span>
