@@ -24,7 +24,9 @@
             <div class="search-container">
                 <input type="text" class="search-input" id="resource-search" placeholder="Buscar região ou local">
                 <i data-lucide="search" class="search-icon" size="20"></i>
-                <div id="search-suggestions" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5E7EB; border-radius: 12px; margin-top: 8px; z-index: 1000; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);"></div>
+                <div id="search-suggestions"
+                    style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5E7EB; border-radius: 12px; margin-top: 8px; z-index: 1000; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                </div>
             </div>
 
             <div class="location-status" id="location-status"
@@ -33,9 +35,7 @@
                 <span>Localizando...</span>
             </div>
 
-            <div class="resource-list" id="resource-list">
-                <!-- Lista será preenchida dinamicamente -->
-            </div>
+            <div class="resource-list" id="resource-list"></div>
         </main>
 
         <nav class="bottom-nav">
@@ -62,7 +62,7 @@
         const statusText = document.getElementById('location-status').querySelector('span');
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // km
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -90,8 +90,7 @@
                 const city = p.tags['addr:city'] || "São Paulo";
                 const street = p.tags['addr:street'] || "Endereço não disponível";
                 const number = p.tags['addr:housenumber'] || "S/N";
-                
-                // Lógica inteligente de horários
+
                 let opening = p.tags.opening_hours;
                 if (!opening) {
                     const is24h = p.tags.amenity === 'police' || p.tags.amenity === 'hospital' || p.tags.emergency === 'yes';
@@ -129,7 +128,6 @@
             lucide.createIcons();
         }
 
-        // Busca por região
         let debounceTimer;
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value;
@@ -164,7 +162,6 @@
             }, 500);
         });
 
-        // Localização inicial e tratamento de busca via URL
         async function initApoio() {
             const urlParams = new URLSearchParams(window.location.search);
             const initialSearch = urlParams.get('search');
@@ -174,7 +171,7 @@
                 navigator.geolocation.getCurrentPosition(async pos => {
                     userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     await loadApoio(userCoords.lat, userCoords.lng);
-                    
+
                     if (initialSearch) {
                         console.log("Aplicando busca inicial:", initialSearch);
                         searchInput.value = initialSearch;
@@ -197,8 +194,7 @@
             }
         }
 
-        // Função global para filtrar a lista (precisa ser acessível)
-        let currentPois = []; // Armazenar POIs carregados
+        let currentPois = [];
         async function loadApoio(lat, lng, label = "Sua localização") {
             statusText.textContent = `Buscando recursos próximos a ${label}...`;
             listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Buscando recursos reais...</div>';
@@ -211,7 +207,7 @@
                 return { ...p, distance: dist };
             }).sort((a, b) => a.distance - b.distance);
 
-            renderResources(); // Renderiza sem filtro inicial ou com o valor do input
+            renderResources();
             statusText.textContent = `Mostrando recursos em ${label}`;
         }
 
@@ -227,7 +223,6 @@
         initApoio();
         lucide.createIcons();
 
-        // Bloqueia acesso ao relatar se não estiver logado
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         document.querySelector('a[href="relatar.html"]')?.addEventListener('click', (e) => {
             if (!isLoggedIn) {

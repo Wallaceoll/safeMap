@@ -1,6 +1,6 @@
 :root {
     --primary: #5A36A3;
-    --bg-light: #FDFBFF; /* Cor idêntica à tela de relatos */
+    --bg-light: #FDFBFF;
     --text-main: #1E293B;
     --text-muted: #64748B;
     --white: #FFFFFF;
@@ -22,7 +22,7 @@ body {
     max-width: 420px;
     height: 100vh;
     position: relative;
-    box-shadow: 0 10px 50px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -64,7 +64,8 @@ body {
 
 .detail-container {
     flex: 1;
-    overflow-y: scroll; /* Força o scrollbar como no print */
+    overflow-y: scroll;
+    /* Força o scrollbar como no print */
     padding: 0 20px 100px 20px;
     scrollbar-width: thin;
 }
@@ -74,7 +75,7 @@ body {
     border-radius: 20px;
     padding: 24px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
 }
 
 .card-header {

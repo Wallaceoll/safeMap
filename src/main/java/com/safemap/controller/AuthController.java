@@ -1,4 +1,4 @@
-package controller;
+package com.safemap.controller;
 
 public class AuthController {
 }

@@ -15,7 +15,8 @@
 <body>
     <div class="app-container fade-in">
         <header class="app-header">
-            <button class="back-btn" onclick="location.href='login.html'"><i data-lucide="arrow-left" size="24"></i></button>
+            <button class="back-btn" onclick="location.href='login.html'"><i data-lucide="arrow-left"
+                    size="24"></i></button>
             <h1 class="header-title">Redefinir Senha</h1>
         </header>
         <div class="header-divider"></div>
@@ -28,13 +29,13 @@
             <div id="alert-msg" class="alert"></div>
 
             <form onsubmit="handleRedefinirSenha(event)">
-                <!-- Token oculto proveniente da URL -->
                 <input type="hidden" id="token" name="token">
 
                 <div class="form-group">
                     <label>Nova senha</label>
                     <div class="input-wrapper">
-                        <input type="password" class="input-control" id="password" placeholder="Digite sua nova senha" required>
+                        <input type="password" class="input-control" id="password" placeholder="Digite sua nova senha"
+                            required>
                         <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
                             <i data-lucide="eye-off" size="20"></i>
                         </button>
@@ -44,8 +45,10 @@
                 <div class="form-group">
                     <label>Confirmar nova senha</label>
                     <div class="input-wrapper">
-                        <input type="password" class="input-control" id="confirm_password" placeholder="Confirme sua nova senha" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)">
+                        <input type="password" class="input-control" id="confirm_password"
+                            placeholder="Confirme sua nova senha" required>
+                        <button type="button" class="toggle-password"
+                            onclick="togglePassword('confirm_password', this)">
                             <i data-lucide="eye-off" size="20"></i>
                         </button>
                     </div>
@@ -73,7 +76,6 @@
     <script>
         lucide.createIcons();
 
-        // Extrai o token da URL query string
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
         if (token) {
@@ -111,24 +113,41 @@
                 return;
             }
 
-            // Chamada POST para o backend
             fetch('/api/auth/redefinir-senha', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     password: password,
                     token: tokenValue || 'test-simulation-token'
                 })
             })
-            .then(response => {
-                if (response.ok) {
-                    alertMsg.innerHTML = '<strong>Senha redefinida!</strong> Sua senha foi atualizada com sucesso. Redirecionando para o login...';
+                .then(response => {
+                    if (response.ok) {
+                        alertMsg.innerHTML = '<strong>Senha redefinida!</strong> Sua senha foi atualizada com sucesso. Redirecionando para o login...';
+                        alertMsg.className = 'alert alert-success';
+                        alertMsg.style.display = 'block';
+
+                        const savedData = JSON.parse(localStorage.getItem('userData'));
+                        if (savedData) {
+                            savedData.password = password;
+                            localStorage.setItem('userData', JSON.stringify(savedData));
+                        }
+
+                        setTimeout(() => {
+                            location.href = 'login.html';
+                        }, 2500);
+                    } else {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                })
+                .catch(error => {
+                    console.warn('Erro na requisição, utilizando simulação local:', error);
+                    alertMsg.innerHTML = '<strong>Senha redefinida!</strong> Atualizada com sucesso (modo de simulação offline). Redirecionando...';
                     alertMsg.className = 'alert alert-success';
                     alertMsg.style.display = 'block';
-                    
-                    // Atualiza a senha simulada no localStorage
+
                     const savedData = JSON.parse(localStorage.getItem('userData'));
                     if (savedData) {
                         savedData.password = password;
@@ -138,27 +157,7 @@
                     setTimeout(() => {
                         location.href = 'login.html';
                     }, 2500);
-                } else {
-                    return response.text().then(text => { throw new Error(text) });
-                }
-            })
-            .catch(error => {
-                // Fallback para simulação local caso não haja backend ativo
-                console.warn('Erro na requisição, utilizando simulação local:', error);
-                alertMsg.innerHTML = '<strong>Senha redefinida!</strong> Atualizada com sucesso (modo de simulação offline). Redirecionando...';
-                alertMsg.className = 'alert alert-success';
-                alertMsg.style.display = 'block';
-
-                const savedData = JSON.parse(localStorage.getItem('userData'));
-                if (savedData) {
-                    savedData.password = password;
-                    localStorage.setItem('userData', JSON.stringify(savedData));
-                }
-
-                setTimeout(() => {
-                    location.href = 'login.html';
-                }, 2500);
-            });
+                });
         }
     </script>
 </body>

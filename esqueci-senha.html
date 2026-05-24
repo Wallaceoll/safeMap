@@ -15,7 +15,8 @@
 <body>
     <div class="app-container fade-in">
         <header class="app-header">
-            <button class="back-btn" onclick="location.href='login.html'"><i data-lucide="arrow-left" size="24"></i></button>
+            <button class="back-btn" onclick="location.href='login.html'"><i data-lucide="arrow-left"
+                    size="24"></i></button>
             <h1 class="header-title">Recuperar Senha</h1>
         </header>
         <div class="header-divider"></div>
@@ -86,7 +87,6 @@
                 return;
             }
 
-            // Chamada POST para o backend
             fetch('/api/auth/esqueci-senha', {
                 method: 'POST',
                 headers: {
@@ -94,24 +94,23 @@
                 },
                 body: JSON.stringify({ email: email })
             })
-            .then(response => {
-                if (response.ok) {
-                    alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação de senha foi enviado para o seu e-mail.';
+                .then(response => {
+                    if (response.ok) {
+                        alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação de senha foi enviado para o seu e-mail.';
+                        alertMsg.className = 'alert alert-success';
+                        alertMsg.style.display = 'block';
+                        emailInput.value = '';
+                    } else {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                })
+                .catch(error => {
+                    console.warn('Erro na requisição, utilizando simulação local:', error);
+                    alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação foi enviado. Para fins de teste local, <a href="redefinir-senha.html?token=test-simulation-token" style="color: #2A9D8F; font-weight: 700; text-decoration: underline;">clique aqui para redefinir sua senha</a>.';
                     alertMsg.className = 'alert alert-success';
                     alertMsg.style.display = 'block';
                     emailInput.value = '';
-                } else {
-                    return response.text().then(text => { throw new Error(text) });
-                }
-            })
-            .catch(error => {
-                // Fallback para simulação local caso não haja backend ativo
-                console.warn('Erro na requisição, utilizando simulação local:', error);
-                alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação foi enviado. Para fins de teste local, <a href="redefinir-senha.html?token=test-simulation-token" style="color: #2A9D8F; font-weight: 700; text-decoration: underline;">clique aqui para redefinir sua senha</a>.';
-                alertMsg.className = 'alert alert-success';
-                alertMsg.style.display = 'block';
-                emailInput.value = '';
-            });
+                });
         }
     </script>
 </body>

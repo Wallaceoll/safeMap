@@ -64,8 +64,7 @@ let isFetchingPOIs = false;
 
 async function loadPOIs(forcedBBox = null) {
     if (isFetchingPOIs) return;
-    
-    // Calcular bbox da visão atual se não for informado
+
     let bbox = forcedBBox;
     if (!bbox && window.safeMap.map) {
         const bounds = window.safeMap.map.getBounds();
@@ -73,17 +72,14 @@ async function loadPOIs(forcedBBox = null) {
         const ne = bounds.getNorthEast();
         bbox = `${sw.lat.toFixed(4)},${sw.lng.toFixed(4)},${ne.lat.toFixed(4)},${ne.lng.toFixed(4)}`;
     }
-    
-    // Se a área não mudou significativamente, não busca de novo (simples otimização)
+
     if (!forcedBBox && currentBBox === bbox) return;
     currentBBox = bbox;
-    
+
     isFetchingPOIs = true;
     const pois = await window.safeMap.fetchOverpassPOIs(bbox);
     isFetchingPOIs = false;
 
-    // Se falhar e não tivermos nada, adicionar alguns pontos de fallback para a Paulista
-    // Isso garante que o mapa nunca pareça quebrado se a API falhar
     if (pois.length === 0 && hospitalLayer.getLayers().length === 0) {
         console.warn("Usando pontos de apoio de fallback devido a falha na API.");
         pois.push(
@@ -93,11 +89,9 @@ async function loadPOIs(forcedBBox = null) {
         );
     }
 
-    // Limpar apenas se estivermos buscando uma área totalmente nova
-    // Para simplificar, vamos apenas adicionar os novos sem duplicar
     const existingIds = new Set();
     [hospitalLayer, policeLayer, shelterLayer].forEach(l => {
-        l.getLayers().forEach(m => { if(m._osmId) existingIds.add(m._osmId) });
+        l.getLayers().forEach(m => { if (m._osmId) existingIds.add(m._osmId) });
     });
 
     pois.forEach(node => {
@@ -137,13 +131,13 @@ async function loadPOIs(forcedBBox = null) {
                 const incidentBlock = document.getElementById('incident-details');
                 const detailsOverlay = document.getElementById('details-overlay');
                 const addressEl = document.getElementById('support-address');
-                
+
                 document.getElementById('support-name').textContent = tags.name || typeName;
-                
+
                 let fallbackAddress = [];
                 if (tags['addr:street']) fallbackAddress.push(tags['addr:street']);
                 if (tags['addr:housenumber']) fallbackAddress.push(tags['addr:housenumber']);
-                
+
                 addressEl.textContent = fallbackAddress.length > 0 ? fallbackAddress.join(', ') : 'Buscando endereço exato...';
                 document.getElementById('support-type').textContent = `Ponto de apoio: ${typeName}.`;
 
@@ -182,29 +176,27 @@ async function loadPOIs(forcedBBox = null) {
         if (!map.hasLayer(policeLayer)) map.addLayer(policeLayer);
         if (!map.hasLayer(shelterLayer)) map.addLayer(shelterLayer);
     }
-    
+
     const updateIcons = () => window.lucide && window.lucide.createIcons();
     hospitalLayer.on('animationend', updateIcons);
     policeLayer.on('animationend', updateIcons);
     shelterLayer.on('animationend', updateIcons);
-    
+
     map.on('layeradd', (e) => {
         if (e.layer instanceof L.Marker && e.layer.options.pane === 'support') {
             updateIcons();
         }
     });
-    
+
     if (window.lucide) window.lucide.createIcons();
 }
 
-// Inicializar e escutar movimentos do mapa para carregar novos POIs
 let moveTimeout;
 map.on('moveend', () => {
     clearTimeout(moveTimeout);
     moveTimeout = setTimeout(() => loadPOIs(), 1000);
 });
 
-// Carga inicial
 loadPOIs();
 
 window.safeMap.layers = window.safeMap.layers || {};
