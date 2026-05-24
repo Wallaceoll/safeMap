@@ -162,6 +162,52 @@
             }, 500);
         });
 
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                triggerSearch();
+            }
+        });
+
+        document.querySelector('.search-icon')?.addEventListener('click', triggerSearch);
+
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        async function triggerSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            suggestionsBox.style.display = 'none';
+            statusText.textContent = `Buscando região "${query}"...`;
+            listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Buscando localização...</div>';
+
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=1`, {
+                    headers: {
+                        'Accept-Language': 'pt-BR',
+                        'User-Agent': 'SafeMap/1.0'
+                    }
+                });
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    const displayName = data[0].display_name.split(',')[0];
+                    await loadApoio(lat, lon, displayName);
+                } else {
+                    statusText.textContent = `Região não encontrada. Tente outra busca.`;
+                    listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Local não encontrado. Tente digitar de outra forma (ex: "Paulista" ou "Consolação").</div>';
+                }
+            } catch (err) {
+                console.error('Geocoding error:', err);
+                statusText.textContent = `Erro na busca.`;
+                listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Erro ao buscar local. Verifique sua conexão.</div>';
+            }
+        }
+
         async function initApoio() {
             const urlParams = new URLSearchParams(window.location.search);
             const initialSearch = urlParams.get('search');
