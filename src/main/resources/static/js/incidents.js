@@ -44,11 +44,10 @@ function createIncidentIcon(type) {
     });
 }
 
-function loadIncidents() {
-    const userReports = JSON.parse(localStorage.getItem('userReports') || '[]');
+function buildGroupedReports(incidentsArray, userReports) {
     const groupedReports = {};
 
-    staticIncidents.forEach(incident => {
+    incidentsArray.forEach(incident => {
         const key = `${incident.lat.toFixed(4)}-${incident.lng.toFixed(4)}`;
         const wReports = incident.type === 'danger' ? Math.floor(incident.reports * 0.7) : Math.floor(incident.reports * 0.4);
         const lReports = incident.reports - wReports;
@@ -75,26 +74,14 @@ function loadIncidents() {
             const date = new Date();
             date.setHours(date.getHours() - (i * 4 + 2));
             const dataItem = womenReportsData[i % womenReportsData.length];
-            allReports.push({
-                ...incident,
-                typeName: dataItem.typeName,
-                targetGroup: 'women',
-                description: dataItem.desc,
-                date: date.toISOString()
-            });
+            allReports.push({ ...incident, typeName: dataItem.typeName, targetGroup: 'women', description: dataItem.desc, date: date.toISOString() });
         }
         
         for (let i = 0; i < lReports; i++) {
             const date = new Date();
             date.setHours(date.getHours() - (i * 6 + 5));
             const dataItem = lgbtReportsData[i % lgbtReportsData.length];
-            allReports.push({
-                ...incident,
-                typeName: dataItem.typeName,
-                targetGroup: 'lgbt',
-                description: dataItem.desc,
-                date: date.toISOString()
-            });
+            allReports.push({ ...incident, typeName: dataItem.typeName, targetGroup: 'lgbt', description: dataItem.desc, date: date.toISOString() });
         }
 
         groupedReports[key] = {
@@ -111,41 +98,78 @@ function loadIncidents() {
 
         const key = `${parseFloat(report.lat).toFixed(4)}-${parseFloat(report.lng).toFixed(4)}`;
         const isWomen = Array.isArray(report.targetGroup) ? report.targetGroup.includes('women') : report.targetGroup === 'women';
-        const isLgbt = Array.isArray(report.targetGroup) ? report.targetGroup.includes('lgbt') : report.targetGroup === 'lgbt';
+        const isLgbt  = Array.isArray(report.targetGroup) ? report.targetGroup.includes('lgbt')  : report.targetGroup === 'lgbt';
 
         if (!groupedReports[key]) {
             groupedReports[key] = {
-                lat: parseFloat(report.lat),
-                lng: parseFloat(report.lng),
+                lat: parseFloat(report.lat), lng: parseFloat(report.lng),
                 type: report.type || 'warning',
                 typeName: report.typeName || (report.type === 'danger' ? 'Alto Risco' : 'Aviso'),
                 address: report.address || 'Localização relatada',
                 district: report.district || 'São Paulo',
                 reports: 1,
                 womenReports: isWomen ? 1 : 0,
-                lgbtReports: isLgbt ? 1 : 0,
+                lgbtReports:  isLgbt  ? 1 : 0,
                 allReports: [report]
             };
         } else {
             groupedReports[key].reports++;
             if (isWomen) groupedReports[key].womenReports++;
-            if (isLgbt) groupedReports[key].lgbtReports++;
-            if (report.type === 'danger') {
-                groupedReports[key].type = 'danger';
-                groupedReports[key].typeName = report.typeName || 'Alto Risco';
-            }
+            if (isLgbt)  groupedReports[key].lgbtReports++;
+            if (report.type === 'danger') { groupedReports[key].type = 'danger'; groupedReports[key].typeName = report.typeName || 'Alto Risco'; }
             if (!groupedReports[key].allReports) groupedReports[key].allReports = [];
             groupedReports[key].allReports.push(report);
         }
     });
 
-    window.safeMap.groupedReports = groupedReports;
+    return groupedReports;
+}
+
+// Converte ocorrência do banco → formato interno do mapa
+function dbOcorrenciaToReport(oc) {
+    const isWomen = oc.publicoAlvo && (oc.publicoAlvo.includes('MULHERES') || oc.publicoAlvo.includes('AMBOS'));
+    const isLgbt  = oc.publicoAlvo && (oc.publicoAlvo.includes('LGBT')    || oc.publicoAlvo.includes('AMBOS'));
+    const isDanger = oc.tipoOcorrencia === 'ASSEDIO' || oc.tipoOcorrencia === 'IMPORTUNACAO_SEXUAL' || oc.tipoOcorrencia === 'AGRESSAO_FISICA';
+
+    const TIPO_LABEL = {
+        ASSEDIO: 'Assédio', IMPORTUNACAO_SEXUAL: 'Importunação Sexual',
+        AGRESSAO_FISICA: 'Agressão Física', AGRESSAO_VERBAL: 'Agressão Verbal'
+    };
+
+    return {
+        lat: oc.latitude, lng: oc.longitude,
+        type: isDanger ? 'danger' : 'warning',
+        typeName: TIPO_LABEL[oc.tipoOcorrencia] || oc.tipoOcorrencia,
+        description: oc.descricao || '',
+        address: oc.endereco || 'Localização relatada',
+        district: 'São Paulo',
+        targetGroup: isWomen && isLgbt ? ['women','lgbt'] : isWomen ? ['women'] : isLgbt ? ['lgbt'] : [],
+        date: oc.dataHora || oc.criadoEm || new Date().toISOString(),
+        reports: 1
+    };
+}
+
+async function loadIncidents() {
+    const userReports = JSON.parse(localStorage.getItem('userReports') || '[]');
+
+    // Tenta buscar do banco; em caso de falha usa só os dados locais
+    let dbReports = [];
+    try {
+        const ocorrencias = await smListarOcorrencias();
+        if (Array.isArray(ocorrencias)) {
+            dbReports = ocorrencias.map(dbOcorrenciaToReport);
+        }
+    } catch (err) {
+        console.warn('SafeMap: não foi possível carregar ocorrências do banco.', err.message);
+    }
+
+    // Mescla: dados estáticos de demonstração + banco + localStorage
+    const allDynamic = [...dbReports, ...userReports];
+    window.safeMap.groupedReports = buildGroupedReports(staticIncidents, allDynamic);
     window.safeMap.renderIncidents();
     map.addLayer(incidentLayer);
 
-    setTimeout(() => {
-        if (window.lucide) window.lucide.createIcons();
-    }, 100);
+    setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
 }
 
 window.safeMap.renderIncidents = function () {
