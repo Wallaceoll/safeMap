@@ -17,7 +17,7 @@ import java.util.List;
  * Garante que o frontend sempre receba o mesmo formato JSON de erro.
  */
 @RestControllerAdvice
-public class GlobalException{
+public class GlobalException {
 
     /** Erros de validação do Bean Validation (@NotBlank, @Email, etc.) */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -52,7 +52,8 @@ public class GlobalException{
     /** Credenciais inválidas no login */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErroResponse> handleBadCredentials(BadCredentialsException ex) {
-        // Mensagem genérica intencional — não informar ao atacante qual campo está errado
+        // Mensagem genérica intencional — não informar ao atacante qual campo está
+        // errado
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ErroResponse.of(401, "E-mail ou senha incorretos"));
@@ -64,6 +65,14 @@ public class GlobalException{
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ErroResponse.of(401, "Conta desativada. Entre em contato com o suporte."));
+    }
+
+    /** Recurso estático ou rota não encontrada (evita poluir os logs com favicon.ico e retorna 404) */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErroResponse> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ErroResponse.of(404, "Recurso não encontrado"));
     }
 
     /** Fallback — erros inesperados */
