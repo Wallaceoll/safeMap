@@ -20,15 +20,7 @@ if (!map.getPane('riskZones')) {
 }
 map.addLayer(riskZoneLayer);
 
-const staticIncidents = [
-    { lat: -23.5855, lng: -46.6836, type: 'danger', address: 'Av. Brigadeiro Faria Lima, 1200', district: 'Itaim Bibi', reports: 8 },
-    { lat: -23.5616, lng: -46.6559, type: 'danger', address: 'Av. Paulista, 1578', district: 'Bela Vista', reports: 12 },
-    { lat: -23.5815, lng: -46.6826, type: 'danger', address: 'Rua Amauri, 45', district: 'Itaim Bibi', reports: 5 },
-    { lat: -23.5641, lng: -46.6669, type: 'warning', address: 'R. Oscar Freire, 379', district: 'Jardins', reports: 3 },
-    { lat: -23.5601, lng: -46.6609, type: 'warning', address: 'Al. Santos, 2200', district: 'Cerqueira César', reports: 4 },
-    { lat: -23.5615, lng: -46.6974, type: 'danger', address: 'R. dos Pinheiros, 500', district: 'Pinheiros', reports: 7 },
-    { lat: -23.6000, lng: -46.6600, type: 'warning', address: 'Av. Ibirapuera, 2100', district: 'Moema', reports: 2 }
-];
+const staticIncidents = [];
 
 function createIncidentIcon(type) {
     return L.divIcon({
