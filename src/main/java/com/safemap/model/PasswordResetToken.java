@@ -13,13 +13,13 @@ import java.util.UUID;
  *
  * Fluxo:
  *  1. Usuário solicita recuperação → backend gera este token e envia por e-mail.
- * 2. Usuário clica no link → backend valida token (não expirado + não utilizado).
- * 3. Usuário define nova senha → token é marcado como utilizado.
- * 
- * 
+ *  2. Usuário clica no link → backend valida token (não expirado + não utilizado).
+ *  3. Usuário define nova senha → token é marcado como utilizado.
+ */
 @Entity
 @Table(name = "tb_password_reset_token",
-        indexes = @Index(name = "idx_tok 
+        indexes = @Index(name = "idx_token_valor", columnList = "token"))
+@Getter
 @Setter
 @NoArgsConstructor
 public class PasswordResetToken {
@@ -54,7 +54,7 @@ public class PasswordResetToken {
     public PasswordResetToken(Usuario usuario) {
         this.usuario  = usuario;
         this.token   = UUID.randomUUID().toString();
-        this.criad = LocalDateTime.now();
+        this.criadoEm = LocalDateTime.now();
         this.expiracao = this.criadoEm.plusHours(1);
     }
 
