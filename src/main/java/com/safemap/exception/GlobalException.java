@@ -27,7 +27,6 @@ public class GlobalException {
                 .stream()
                 .map(FieldError::getDefaultMessage)
                 .toList();
-
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErroResponse.of(400, "Dados inválidos", detalhes));
@@ -49,11 +48,17 @@ public class GlobalException {
                 .body(ErroResponse.of(400, ex.getMessage()));
     }
 
+    /** Token de recuperação inválido ou expirado */
+    @ExceptionHandler(TokenInvalidoException.class)
+    public ResponseEntity<ErroResponse> handleTokenInvalido(TokenInvalidoException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErroResponse.of(400, ex.getMessage()));
+    }
+
     /** Credenciais inválidas no login */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErroResponse> handleBadCredentials(BadCredentialsException ex) {
-        // Mensagem genérica intencional — não informar ao atacante qual campo está
-        // errado
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ErroResponse.of(401, "E-mail ou senha incorretos"));
@@ -67,9 +72,10 @@ public class GlobalException {
                 .body(ErroResponse.of(401, "Conta desativada. Entre em contato com o suporte."));
     }
 
-    /** Recurso estático ou rota não encontrada (evita poluir os logs com favicon.ico e retorna 404) */
+    /** Recurso não encontrado */
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
-    public ResponseEntity<ErroResponse> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+    public ResponseEntity<ErroResponse> handleNoResourceFound(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ErroResponse.of(404, "Recurso não encontrado"));
@@ -78,11 +84,9 @@ public class GlobalException {
     /** Fallback — erros inesperados */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroResponse> handleGeneral(Exception ex) {
-        // Logar o ex completo para depuração local
         ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErroResponse.of(500, "Erro interno. Tente novamente mais tarde."));
     }
 }
-
