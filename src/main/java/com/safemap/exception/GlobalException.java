@@ -69,7 +69,8 @@ public class GlobalException{
     /** Fallback — erros inesperados */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroResponse> handleGeneral(Exception ex) {
-        // Em produção, logar o ex completo sem expor ao cliente
+        // Logar o ex completo para depuração local
+        ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErroResponse.of(500, "Erro interno. Tente novamente mais tarde."));
