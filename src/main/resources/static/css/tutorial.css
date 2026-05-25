@@ -132,3 +132,20 @@
     border: none;
     box-shadow: 0 4px 12px rgba(90, 54, 163, 0.2);
 }
+
+.btn-prev {
+    background: none;
+    border: none;
+    color: #9CA3AF;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.btn-prev:hover {
+    color: var(--primary-purple);
+}
+
