@@ -32,17 +32,21 @@ async function fetchOverpassPOIs(bbox = DEFAULT_BBOX) {
 
     const query = `[out:json][timeout:10];(node["amenity"="hospital"](${bbox});way["amenity"="hospital"](${bbox});node["amenity"="police"](${bbox});way["amenity"="police"](${bbox});node["social_facility"](${bbox});way["social_facility"](${bbox});node["amenity"="social_facility"](${bbox});way["amenity"="social_facility"](${bbox}););out center;`;
 
-    const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     let pois = [];
     let success = false;
 
-    if (!isLocalhost) {
+    // Mirrors públicos do Overpass API para consulta direta do navegador (CORS-enabled)
+    const mirrors = [
+        `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`,
+        `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`,
+        `https://overpass.openstreetmap.ru/api/interpreter?data=${encodeURIComponent(query)}`
+    ];
+
+    for (const url of mirrors) {
         try {
-            console.log(`[overpass] Tentando buscar via proxy | bbox: ${bbox}`);
-            const response = await fetch(`/api/overpass?bbox=${encodeURIComponent(bbox)}`, {
-                method: "GET",
-                headers: { "Accept": "application/json" }
-            });
+            const domain = new URL(url).hostname;
+            console.log(`[overpass] Tentando buscar diretamente da API pública: ${domain}`);
+            const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
                 pois = (data.elements || []).filter(el => el.tags).map(el => {
@@ -51,35 +55,14 @@ async function fetchOverpassPOIs(bbox = DEFAULT_BBOX) {
                     }
                     return el;
                 });
-                console.log(`[overpass] Proxy retornou ${pois.length} POIs`);
+                console.log(`[overpass] Sucesso via ${domain}: ${pois.length} POIs`);
                 success = true;
+                break; // Sai do loop se a requisição for bem-sucedida
             } else {
-                console.warn(`[overpass] Proxy retornou status ${response.status}. Tentando chamada direta...`);
+                console.warn(`[overpass] Mirror ${domain} retornou status ${response.status}`);
             }
         } catch (err) {
-            console.warn("[overpass] Erro na chamada via proxy, tentando chamada direta...", err.message);
-        }
-    }
-
-    if (!success) {
-        try {
-            console.log(`[overpass] Tentando buscar diretamente da API pública | bbox: ${bbox}`);
-            const directUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-            const response = await fetch(directUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            const data = await response.json();
-            pois = (data.elements || []).filter(el => el.tags).map(el => {
-                if ((el.type === 'way' || el.type === 'relation') && el.center) {
-                    return { ...el, lat: el.center.lat, lon: el.center.lon };
-                }
-                return el;
-            });
-            console.log(`[overpass] Chamada direta retornou ${pois.length} POIs`);
-            success = true;
-        } catch (err) {
-            console.error("[overpass] Falha total ao buscar POIs (proxy e direta):", err.message);
+            console.warn(`[overpass] Erro ao consultar mirror:`, err.message);
         }
     }
 
