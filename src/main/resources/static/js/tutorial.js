@@ -21,8 +21,9 @@ function initTutorial() {
     const spotlight = document.getElementById('tutorial-spotlight');
     const nextBtn = document.getElementById('btn-next');
     const skipBtn = document.getElementById('btn-skip');
+    const prevBtn = document.getElementById('btn-prev');
 
-    if (!overlay || !spotlight || !nextBtn || !skipBtn) return;
+    if (!overlay || !spotlight || !nextBtn || !skipBtn || !prevBtn) return;
 
     function updateStep() {
         const step = tutorialSteps[currentStep];
@@ -94,6 +95,10 @@ function initTutorial() {
             card.classList.add('at-bottom');
         }
 
+        if (prevBtn) {
+            prevBtn.style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+        }
+
         nextBtn.textContent = currentStep === tutorialSteps.length - 1 ? 'ENTENDI' : 'PRÓXIMO';
     }
 
@@ -104,6 +109,13 @@ function initTutorial() {
         } else {
             overlay.classList.remove('active');
             localStorage.setItem('tutorialShown', 'true');
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 0) {
+            currentStep--;
+            updateStep();
         }
     });
 

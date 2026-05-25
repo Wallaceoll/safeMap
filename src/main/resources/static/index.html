@@ -292,7 +292,12 @@
                 </div>
                 <div class="tutorial-footer">
                     <button class="btn-skip" id="btn-skip">Pular</button>
-                    <span style="font-size: 13px; color: #9CA3AF; font-weight: 600;" id="step-counter">1/8</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button class="btn-prev" id="btn-prev" style="visibility: hidden;">
+                            <i data-lucide="chevron-left" size="20"></i>
+                        </button>
+                        <span style="font-size: 13px; color: #9CA3AF; font-weight: 600;" id="step-counter">1/8</span>
+                    </div>
                     <button class="btn-next" id="btn-next">PRÓXIMO</button>
                 </div>
             </div>
