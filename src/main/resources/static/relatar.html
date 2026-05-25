@@ -7,105 +7,109 @@
     <title>Relatar ocorrência - safeMap</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/relatar.css">
+    <link rel="stylesheet" href="css/base.css?v=1.2">
+    <link rel="stylesheet" href="css/relatar.css?v=1.2">
+    <script src="js/theme.js"></script>
 </head>
 
 <body>
-    <div class="app-container">
+    <div class="app-container fade-in">
         <header class="app-header">
             <button class="back-btn" onclick="history.back()"><i data-lucide="arrow-left" size="24"></i></button>
-            <h1 class="header-title">Relatar ocorrência</h1>
+            <h1 class="header-title">Relatar Ocorrência</h1>
+            <button id="theme-toggle-btn" class="theme-toggle-btn">
+                <i id="theme-icon" data-lucide="moon" size="22"></i>
+            </button>
         </header>
-        <p class="header-subtitle">Ajude outras pessoas reportando situações</p>
-        <div class="header-divider"></div>
-
 
         <main>
-            <form onsubmit="handleReport(event)">
-                <div class="form-group">
-                    <label>Tipo de ocorrência</label>
-                    <select class="input-control" id="report-type" required>
-                        <option value="">Selecione o tipo</option>
-                        <option value="assedio">Assédio</option>
-                        <option value="importunacao-sexual">Importunação Sexual</option>
-                        <option value="agressao-fisica">Agressão Física</option>
-                        <option value="agressao-verbal">Agressão Verbal</option>
+            <div class="header-banner">
+                <div class="banner-icon"><i data-lucide="megaphone" size="28"></i></div>
+                <h2>Ajude a comunidade</h2>
+                <p>Compartilhe situações para alertar e proteger outras pessoas.</p>
+            </div>
 
-                    </select>
-                </div>
-
-
-                <div class="form-group">
-                    <label>Público-alvo do risco(Selecione uma ou mais opções)</label>
-                    <div style="display: flex; gap: 12px; margin-top: 8px;">
-                        <label
-                            style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 12px 16px; border: 1px solid #E5E7EB; border-radius: 12px; cursor: pointer; background-color: #F9FAFB;">
-                            <input type="checkbox" name="target-group" value="women" checked>
-                            <span style="font-size: 14px; font-weight: 500;">Mulheres</span>
-                        </label>
-                        <label
-                            style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 12px 16px; border: 1px solid #E5E7EB; border-radius: 12px; cursor: pointer; background-color: #F9FAFB;">
-                            <input type="checkbox" name="target-group" value="lgbt">
-                            <span style="font-size: 14px; font-weight: 500;">LGBT+</span>
-                        </label>
-                    </div>
-                </div>
-                <!-- Campo de descrição -->
-                <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="margin-bottom: 0;">Descrição da ocorrência (opcional)</label>
-                        <span id="char-count" style="font-size: 12px; color: #9ca3af; font-weight: 500;">0/200</span>
-                    </div>
-                    <textarea class="input-control" id="report-desc" placeholder="Descreva a ocorrência" maxlength="200" oninput="updateCounter()"></textarea>
-                </div>
-                <!-- Campo de localização com botão de GPS -->
-                <div class="input-group">
-                    <label
-                        style="display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #111827;"
-                        for="report-loc">Local da ocorrência</label>
-
-                    <div style="position: relative;">
-                        <input type="text" class="input-control" id="report-loc"
-                            placeholder="Digite o endereço ou use o GPS" required autocomplete="off">
-                        <button type="button" class="gps-btn" onclick="getCurrentLocation()">
-                            <i data-lucide="map-pin" size="20"></i>
-                        </button>
-                        <div id="address-suggestions" class="suggestions-list"
-                            style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5E7EB; border-radius: 12px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 4px; max-height: 200px; overflow-y: auto;">
+            <div class="glass-card">
+                <form onsubmit="handleReport(event)">
+                    
+                    <div class="form-group">
+                        <label>Tipo de ocorrência</label>
+                        <div class="input-wrapper">
+                            <select class="input-control" id="report-type" required>
+                                <option value="" disabled selected>Selecione o tipo</option>
+                                <option value="assedio">Assédio</option>
+                                <option value="importunacao-sexual">Importunação Sexual</option>
+                                <option value="agressao-fisica">Agressão Física</option>
+                                <option value="agressao-verbal">Agressão Verbal</option>
+                            </select>
                         </div>
                     </div>
-                </div>
-                <!-- Campo de data e hora -->
-                <div class="form-group">
-                    <label>Data e hora</label>
-                    <div class="input-wrapper">
-                        <input type="datetime-local" class="input-control" id="report-datetime">
-                        <i data-lucide="calendar" class="input-icon-right" size="20" style="pointer-events: none;"></i>
+
+                    <div class="form-group">
+                        <label>Público-alvo do risco (Selecione uma ou mais opções)</label>
+                        <div class="checkbox-group">
+                            <label class="custom-checkbox-btn">
+                                <input type="checkbox" name="target-group" value="women" checked>
+                                <div class="checkbox-content">
+                                    <i data-lucide="venus" size="18"></i>
+                                    <span>Mulheres</span>
+                                </div>
+                            </label>
+                            <label class="custom-checkbox-btn">
+                                <input type="checkbox" name="target-group" value="lgbt">
+                                <div class="checkbox-content">
+                                    <i data-lucide="flag" size="18"></i>
+                                    <span>LGBT+</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Campo de Aviso de compartilhamento -->
-                <div class="privacy-warning-box">
-                    <i data-lucide="shield-alert" size="18"></i>
-                    <p><strong>Aviso de privacidade:</strong> Os dados inseridos acima (tipo, descrição aproximada,
-                        horário e local) serão compartilhados publicamente no mapa para alertar outros usuários da
-                        comunidade. Não inclua dados pessoais sensíveis seus ou de terceiros.
-                    </p>
-                </div>
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="margin-bottom: 0;">Descrição (opcional)</label>
+                            <span id="char-count" class="char-counter">0/200</span>
+                        </div>
+                        <div class="input-wrapper">
+                            <textarea class="input-control" id="report-desc" placeholder="Descreva brevemente a ocorrência" maxlength="200" oninput="updateCounter()"></textarea>
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn-primary">Enviar ocorrência</button>
-            </form>
+                    <div class="form-group">
+                        <label>Local da ocorrência</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="map-pin" size="18" class="input-icon-left"></i>
+                            <input type="text" class="input-control" id="report-loc" placeholder="Endereço ou use o GPS" required autocomplete="off">
+                            <button type="button" class="gps-btn" onclick="getCurrentLocation()" title="Usar localização atual">
+                                <i data-lucide="locate-fixed" size="20"></i>
+                            </button>
+                            <div id="address-suggestions" class="suggestions-list"></div>
+                        </div>
+                    </div>
 
+                    <div class="form-group">
+                        <label>Data e hora</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="calendar" size="18" class="input-icon-left"></i>
+                            <input type="datetime-local" class="input-control" id="report-datetime" required>
+                        </div>
+                    </div>
+
+                    <div class="privacy-warning-box">
+                        <i data-lucide="shield-alert" size="20"></i>
+                        <p><strong>Aviso de privacidade:</strong> Os dados (tipo, descrição, horário e local) serão públicos no mapa. Não inclua dados sensíveis pessoais.</p>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Enviar ocorrência</button>
+                </form>
+            </div>
+            
             <div class="info-box">
                 <i data-lucide="info" size="20"></i>
-                <p>
-                    <strong>Importante:</strong> Seus relatos ajudam a manter a comunidade segura. Relate situações
-                    reais com responsabilidade.
-                </p>
+                <p><strong>Importante:</strong> Seus relatos ajudam a manter a comunidade segura. Relate situações reais com responsabilidade.</p>
             </div>
         </main>
-        <!-- Barra de navegação inferior -->
+
         <nav class="bottom-nav">
             <a href="index.html" class="nav-item">
                 <div class="nav-icon-wrapper"><i data-lucide="map-pin"></i></div>
@@ -133,7 +137,6 @@
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         document.getElementById('report-datetime').value = now.toISOString().slice(0, 16);
 
-
         let currentCoords = null;
         const locInput = document.getElementById('report-loc');
         const suggestionsBox = document.getElementById('address-suggestions');
@@ -145,11 +148,12 @@
             counter.innerText = `${textarea.value.length}/200`;
 
             if (textarea.value.length >= 200) {
-                counter.style.color = '#E63946';
+                counter.style.color = 'var(--danger-red)';
             } else {
-                counter.style.color = '#ADB5BD';
+                counter.style.color = 'var(--text-muted)';
             }
         }
+        
         locInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             const query = locInput.value;
@@ -180,12 +184,8 @@
                             }
 
                             const div = document.createElement('div');
-                            div.style.padding = '12px 16px';
-                            div.style.cursor = 'pointer';
-                            div.style.borderBottom = '1px solid #F3F4F6';
-                            div.style.fontSize = '14px';
-                            div.style.color = '#374151';
-                            div.innerHTML = `<i data-lucide="map-pin" size="14" style="margin-right:8px; opacity:0.5;"></i> ${displayName}`;
+                            div.className = 'suggestion-item';
+                            div.innerHTML = `<i data-lucide="map-pin" size="14"></i> <span>${displayName}</span>`;
                             div.onclick = () => {
                                 locInput.value = displayName;
                                 locInput.setAttribute('data-last-gps', displayName);
@@ -350,7 +350,6 @@
             }
         }
 
-        // Mapa de valores do select → enum do backend
         const TIPO_MAP = {
             'assedio':             'ASSEDIO',
             'importunacao-sexual': 'IMPORTUNACAO_SEXUAL',
@@ -358,7 +357,6 @@
             'agressao-verbal':     'AGRESSAO_VERBAL'
         };
 
-        // Mapa de valores dos checkboxes → enum do backend
         const PUBLICO_MAP = { 'women': 'MULHERES', 'lgbt': 'LGBT' };
 
         async function handleReport(e) {
@@ -376,7 +374,6 @@
                 return;
             }
 
-            // ── Resolve coordenadas (mesma lógica de antes) ──────────
             let reportLat = currentCoords ? currentCoords.lat : null;
             let reportLng = currentCoords ? currentCoords.lng : null;
 
@@ -398,10 +395,8 @@
                 reportLng = -46.6333 + (Math.random() * 0.02 - 0.01);
             }
 
-            // ── Monta payload para o backend ─────────────────────────
             const tipoOcorrencia = TIPO_MAP[type] || type.toUpperCase();
             const publicoAlvo    = targetGroup.map(v => PUBLICO_MAP[v] || v.toUpperCase());
-            // Converte "YYYY-MM-DDTHH:MM" → "YYYY-MM-DDTHH:MM:SS" (LocalDateTime)
             const dataHora = datetime.length === 16 ? datetime + ':00' : datetime;
 
             btn.disabled = true;

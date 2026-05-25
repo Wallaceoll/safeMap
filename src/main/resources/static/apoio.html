@@ -7,30 +7,30 @@
     <title>Recursos de apoio - safeMap</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/base.css?v=1.2">
     <link rel="stylesheet" href="css/apoio.css?v=1.2">
     <script src="js/overpass.js?v=2.0"></script>
+    <script src="js/theme.js"></script>
 </head>
 
 <body>
-    <div class="app-container">
+    <div class="app-container fade-in">
         <header class="app-header">
             <button class="back-btn" onclick="history.back()"><i data-lucide="arrow-left" size="24"></i></button>
             <h1 class="header-title">Recursos de apoio</h1>
+            <button id="theme-toggle-btn" class="theme-toggle-btn">
+                <i id="theme-icon" data-lucide="moon" size="22"></i>
+            </button>
         </header>
-        <div class="header-divider"></div>
 
         <main>
             <div class="search-container">
                 <input type="text" class="search-input" id="resource-search" placeholder="Buscar região ou local">
                 <i data-lucide="search" class="search-icon" size="20"></i>
-                <div id="search-suggestions"
-                    style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #E5E7EB; border-radius: 12px; margin-top: 8px; z-index: 1000; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
-                </div>
+                <div id="search-suggestions" class="suggestions-list"></div>
             </div>
 
-            <div class="location-status" id="location-status"
-                style="font-size: 13px; color: #6B7280; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <div class="location-status" id="location-status">
                 <i data-lucide="map-pin" size="14"></i>
                 <span>Localizando...</span>
             </div>
@@ -97,10 +97,7 @@
             let data = [];
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
-                    headers: {
-                        'Accept-Language': 'pt-BR',
-                        'User-Agent': 'SafeMap/1.0'
-                    }
+                    headers: { 'Accept-Language': 'pt-BR', 'User-Agent': 'SafeMap/1.0' }
                 });
                 data = await res.json();
             } catch (e) {
@@ -114,10 +111,7 @@
                 if (queryWithoutNumber.length > 2) {
                     try {
                         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryWithoutNumber)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
-                            headers: {
-                                'Accept-Language': 'pt-BR',
-                                'User-Agent': 'SafeMap/1.0'
-                            }
+                            headers: { 'Accept-Language': 'pt-BR', 'User-Agent': 'SafeMap/1.0' }
                         });
                         const dataFallback = await res.json();
                         filtered = dataFallback.filter(isSPCity);
@@ -127,31 +121,7 @@
                 }
             }
 
-            if (filtered.length === 0) {
-                const parts = query.split(/[,-]/);
-                if (parts.length > 1) {
-                    const mainPart = parts[0].trim();
-                    if (mainPart.length > 2 && mainPart !== query) {
-                        try {
-                            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mainPart)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
-                                headers: {
-                                    'Accept-Language': 'pt-BR',
-                                    'User-Agent': 'SafeMap/1.0'
-                                }
-                            });
-                            const dataFallback2 = await res.json();
-                            filtered = dataFallback2.filter(isSPCity);
-                        } catch (e) {
-                            console.error("Geocoding fallback 2 fetch error:", e);
-                        }
-                    }
-                }
-            }
-
-            return {
-                results: filtered,
-                typedNumber: typedNumber
-            };
+            return { results: filtered, typedNumber: typedNumber };
         }
 
         let userCoords = null;
@@ -179,7 +149,7 @@
         function renderPois(pois, centerLat, centerLng) {
             listContainer.innerHTML = "";
             if (pois.length === 0) {
-                listContainer.innerHTML = `<div style="text-align:center; padding: 40px; color: #9CA3AF;">Nenhum recurso encontrado nesta região.</div>`;
+                listContainer.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum recurso encontrado nesta região.</div>`;
                 return;
             }
 
@@ -200,7 +170,7 @@
                 card.className = "resource-card";
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-                        <h2 style="margin: 0; flex: 1; padding-right: 12px;">${name}</h2>
+                        <h2 style="margin: 0; flex: 1; padding-right: 12px; font-size: 18px; font-weight: 700; color: var(--text-primary);">${name}</h2>
                         <span class="distance-tag">A ${p.distance.toFixed(1)} km</span>
                     </div>
                     <span class="card-subtitle">${suburb} • ${city} - SP</span>
@@ -245,11 +215,9 @@
                         suggestionsBox.innerHTML = '';
                         results.slice(0, 5).forEach(item => {
                             const div = document.createElement('div');
-                            div.style.padding = '12px';
-                            div.style.cursor = 'pointer';
-                            div.style.borderBottom = '1px solid #EEE';
+                            div.className = 'suggestion-item';
                             const formatted = formatAddress(item, typedNumber);
-                            div.textContent = formatted;
+                            div.innerHTML = `<i data-lucide="map-pin" size="14"></i> <span>${formatted}</span>`;
                             div.onclick = () => {
                                 searchInput.value = formatted;
                                 suggestionsBox.style.display = 'none';
@@ -258,6 +226,7 @@
                             suggestionsBox.appendChild(div);
                         });
                         suggestionsBox.style.display = 'block';
+                        lucide.createIcons();
                     } else {
                         suggestionsBox.style.display = 'none';
                     }
@@ -285,7 +254,7 @@
 
             suggestionsBox.style.display = 'none';
             statusText.textContent = `Buscando região "${query}"...`;
-            listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Buscando localização...</div>';
+            listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Buscando localização...</div>';
 
             try {
                 const { results, typedNumber } = await searchAddressSP(query);
@@ -299,19 +268,18 @@
                     await loadApoio(lat, lon, displayName);
                 } else {
                     statusText.textContent = `Região não encontrada em São Paulo. Tente outra busca.`;
-                    listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Local não encontrado na cidade de São Paulo. Tente digitar de outra forma (ex: "Paulista" ou "Consolação").</div>';
+                    listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Local não encontrado na cidade de São Paulo. Tente digitar de outra forma (ex: "Paulista" ou "Consolação").</div>';
                 }
             } catch (err) {
                 console.error('Geocoding error:', err);
                 statusText.textContent = `Erro na busca.`;
-                listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Erro ao buscar local. Verifique sua conexão.</div>';
+                listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Erro ao buscar local. Verifique sua conexão.</div>';
             }
         }
 
         async function initApoio() {
             const urlParams = new URLSearchParams(window.location.search);
             const initialSearch = urlParams.get('search');
-            console.log("Parâmetro de busca recebido:", initialSearch);
 
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(async pos => {
@@ -319,7 +287,6 @@
                     await loadApoio(userCoords.lat, userCoords.lng);
 
                     if (initialSearch) {
-                        console.log("Aplicando busca inicial:", initialSearch);
                         searchInput.value = initialSearch;
                         renderResources(initialSearch);
                     }
@@ -343,7 +310,7 @@
         let currentPois = [];
         async function loadApoio(lat, lng, label = "Sua localização") {
             statusText.textContent = `Buscando recursos próximos a ${label}...`;
-            listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: #9CA3AF;">Buscando recursos reais...</div>';
+            listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Buscando recursos reais...</div>';
 
             const bbox = getBBox(lat, lng);
             let pois = await window.safeMap.fetchOverpassPOIs(bbox);
@@ -352,8 +319,8 @@
                 console.warn("[apoio] Usando pontos de apoio de fallback devido a falha na API ou ausência de recursos.");
                 pois = [
                     { lat: lat + 0.002, lon: lng - 0.003, tags: { name: "Hospital de Apoio São Paulo", amenity: "hospital", 'addr:street': "Avenida Paulista", 'addr:housenumber': "200" } },
-                    { lat: lat - 0.001, lon: lng + 0.004, tags: { name: "78º Distrito Policial - Jardins (Apoio)", amenity: "police", 'addr:street': "Rua da Consolação", 'addr:housenumber': "1600" } },
-                    { lat: lat + 0.004, lon: lng + 0.001, tags: { name: "Centro de Acolhimento Social (Apoio)", social_facility: "shelter", 'addr:street': "Rua Augusta", 'addr:housenumber': "500" } }
+                    { lat: lat - 0.001, lon: lng + 0.004, tags: { name: "78º Distrito Policial - Jardins", amenity: "police", 'addr:street': "Rua da Consolação", 'addr:housenumber': "1600" } },
+                    { lat: lat + 0.004, lon: lng + 0.001, tags: { name: "Centro de Acolhimento Social", social_facility: "shelter", 'addr:street': "Rua Augusta", 'addr:housenumber': "500" } }
                 ];
             }
 

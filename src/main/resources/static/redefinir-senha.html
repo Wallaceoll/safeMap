@@ -7,156 +7,139 @@
     <title>Redefinir Senha - safeMap</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/login.css">
-    <link rel="stylesheet" href="css/recuperar.css">
+    <link rel="stylesheet" href="css/base.css?v=1.2">
+    <link rel="stylesheet" href="css/login.css?v=1.2">
+    <link rel="stylesheet" href="css/recuperar.css?v=1.2">
+    <script src="js/theme.js"></script>
 </head>
 
 <body>
     <div class="app-container fade-in">
         <header class="app-header">
-            <button class="back-btn" onclick="location.href='login.html'"><i data-lucide="arrow-left"
-                    size="24"></i></button>
-            <h1 class="header-title">Redefinir Senha</h1>
+            <h1 class="header-title" style="margin-left: 12px; text-align: left;">Redefinir Senha</h1>
+            <button id="theme-toggle-btn" class="theme-toggle-btn">
+                <i id="theme-icon" data-lucide="moon" size="22"></i>
+            </button>
         </header>
-        <div class="header-divider"></div>
 
         <main>
-            <p style="color: #6B7280; font-size: 14px; margin-bottom: 28px; line-height: 1.6; text-align: center;">
-                Escolha uma nova senha forte para acessar sua conta com segurança.
-            </p>
-
-            <div id="alert-msg" class="alert"></div>
-
-            <form onsubmit="handleRedefinirSenha(event)">
-                <input type="hidden" id="token" name="token">
-
-                <div class="form-group">
-                    <label>Nova senha</label>
-                    <div class="input-wrapper">
-                        <input type="password" class="input-control" id="password" placeholder="Digite sua nova senha"
-                            required>
-                        <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
-                            <i data-lucide="eye-off" size="20"></i>
-                        </button>
+            <div class="glass-card">
+                <div class="login-header-icon">
+                    <div class="icon-circle">
+                        <i data-lucide="shield-check" size="28"></i>
                     </div>
+                    <h2>Crie uma nova senha</h2>
+                    <p>Digite sua nova senha abaixo para acessar sua conta.</p>
                 </div>
 
-                <div class="form-group">
-                    <label>Confirmar nova senha</label>
-                    <div class="input-wrapper">
-                        <input type="password" class="input-control" id="confirm_password"
-                            placeholder="Confirme sua nova senha" required>
-                        <button type="button" class="toggle-password"
-                            onclick="togglePassword('confirm_password', this)">
-                            <i data-lucide="eye-off" size="20"></i>
-                        </button>
-                    </div>
-                </div>
+                <div id="alert-msg" class="alert"></div>
 
-                <button type="submit" class="btn-primary" style="margin-top: 8px;">Redefinir senha</button>
-            </form>
+                <form id="redefinir-form" onsubmit="handleRedefinirSenha(event)">
+                    <div class="form-group">
+                        <label>Nova Senha</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="lock" size="18" class="input-icon-left"></i>
+                            <input type="password" class="input-control" id="new-password" placeholder="Mínimo 6 caracteres" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('new-password', this)">
+                                <i data-lucide="eye-off" size="20"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Confirmar Nova Senha</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="shield-check" size="18" class="input-icon-left"></i>
+                            <input type="password" class="input-control" id="confirm-new-password" placeholder="Repita a senha" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirm-new-password', this)">
+                                <i data-lucide="eye-off" size="20"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="margin-top: 16px;">Salvar nova senha</button>
+                </form>
+
+                <div class="back-to-login" style="margin-top: 24px;">
+                    <a href="login.html">Voltar para o Login</a>
+                </div>
+            </div>
         </main>
-
-        <nav class="bottom-nav">
-            <a href="index.html" class="nav-item">
-                <div class="nav-icon-wrapper"><i data-lucide="map-pin"></i></div>
-                <span>Mapa</span>
-            </a>
-            <a href="relatar.html" class="nav-item">
-                <div class="nav-icon-wrapper"><i data-lucide="plus-circle"></i></div>
-                <span>Relatar</span>
-            </a>
-            <a href="apoio.html" class="nav-item">
-                <div class="nav-icon-wrapper"><i data-lucide="handshake"></i></div>
-                <span>Apoio</span>
-            </a>
-        </nav>
     </div>
     <script>
         lucide.createIcons();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        if (token) {
-            document.getElementById('token').value = token;
-        }
 
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
             const isPassword = input.type === 'password';
             input.type = isPassword ? 'text' : 'password';
-            btn.innerHTML = `<i data-lucide="${isPassword ? 'eye' : 'eye-off'}" size="20"></i>`;
+            btn.innerHTML = `<i data-lucide="${input.type === 'text' ? 'eye' : 'eye-off'}" size="20"></i>`;
             lucide.createIcons();
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (!token) {
+            const form = document.getElementById('redefinir-form');
+            form.style.display = 'none';
+            const alertMsg = document.getElementById('alert-msg');
+            alertMsg.innerHTML = '<strong>Erro:</strong> Link inválido ou expirado.';
+            alertMsg.className = 'alert alert-danger';
+            alertMsg.style.display = 'block';
         }
 
         function handleRedefinirSenha(e) {
             e.preventDefault();
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm_password').value;
-            const tokenValue = document.getElementById('token').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmNewPassword = document.getElementById('confirm-new-password').value;
             const alertMsg = document.getElementById('alert-msg');
+            const btn = e.target.querySelector('button[type="submit"]');
 
             alertMsg.style.display = 'none';
 
-            if (password !== confirmPassword) {
-                alertMsg.textContent = 'As senhas não coincidem.';
+            if (newPassword !== confirmNewPassword) {
+                alertMsg.textContent = 'As senhas não coincidem. Tente novamente.';
                 alertMsg.className = 'alert alert-danger';
                 alertMsg.style.display = 'block';
                 return;
             }
 
-            if (password.length < 6) {
-                alertMsg.textContent = 'A nova senha deve ter pelo menos 6 caracteres.';
+            if (newPassword.length < 6) {
+                alertMsg.textContent = 'A senha deve ter pelo menos 6 caracteres.';
                 alertMsg.className = 'alert alert-danger';
                 alertMsg.style.display = 'block';
                 return;
             }
+
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
 
             fetch('/api/auth/redefinir-senha', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    password: password,
-                    token: tokenValue || 'test-simulation-token'
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: token, novaSenha: newPassword })
             })
                 .then(response => {
                     if (response.ok) {
-                        alertMsg.innerHTML = '<strong>Senha redefinida!</strong> Sua senha foi atualizada com sucesso. Redirecionando para o login...';
+                        alertMsg.innerHTML = '<strong>Sucesso!</strong> Sua senha foi redefinida.';
                         alertMsg.className = 'alert alert-success';
                         alertMsg.style.display = 'block';
-
-                        const savedData = JSON.parse(localStorage.getItem('userData'));
-                        if (savedData) {
-                            savedData.password = password;
-                            localStorage.setItem('userData', JSON.stringify(savedData));
-                        }
-
-                        setTimeout(() => {
-                            location.href = 'login.html';
-                        }, 2500);
+                        document.getElementById('redefinir-form').style.display = 'none';
                     } else {
                         return response.text().then(text => { throw new Error(text) });
                     }
                 })
                 .catch(error => {
                     console.warn('Erro na requisição, utilizando simulação local:', error);
-                    alertMsg.innerHTML = '<strong>Senha redefinida!</strong> Atualizada com sucesso (modo de simulação offline). Redirecionando...';
+                    alertMsg.innerHTML = '<strong>Simulação Local:</strong> Senha redefinida com sucesso!';
                     alertMsg.className = 'alert alert-success';
                     alertMsg.style.display = 'block';
-
-                    const savedData = JSON.parse(localStorage.getItem('userData'));
-                    if (savedData) {
-                        savedData.password = password;
-                        localStorage.setItem('userData', JSON.stringify(savedData));
-                    }
-
-                    setTimeout(() => {
-                        location.href = 'login.html';
-                    }, 2500);
+                    document.getElementById('redefinir-form').style.display = 'none';
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Salvar nova senha';
                 });
         }
     </script>

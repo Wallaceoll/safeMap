@@ -18,9 +18,27 @@
     <link rel="stylesheet" href="css/base.css?v=1.1">
     <link rel="stylesheet" href="css/index.css?v=1.1">
     <link rel="stylesheet" href="css/tutorial.css?v=1.1">
+    <script src="js/theme.js"></script>
 </head>
 
 <body>
+    <!-- Splash Screen -->
+    <div class="splash-screen" id="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo-container">
+                <div class="splash-logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 10.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 5.5 12 5.5 15.5 7.07 15.5 9 13.93 12.5 12 12.5z" fill="var(--primary-purple)"/>
+                        <circle cx="12" cy="9" r="2.2" fill="var(--white)"/>
+                    </svg>
+                </div>
+                <div class="splash-logo-text">SafeMap</div>
+            </div>
+            
+            <div class="splash-loader"></div>
+        </div>
+    </div>
+
     <div class="app-container">
         <div class="map-header">
             <div class="search-row">
@@ -28,6 +46,9 @@
                     <i data-lucide="search" size="20"></i>
                     <input type="text" id="main-search-input" placeholder="Pesquisar locais">
                 </div>
+                <button id="theme-toggle-btn" class="theme-toggle-btn-map" style="background: var(--bg-glass-dark); border: 1px solid var(--border-color); color: var(--text-secondary); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); flex-shrink: 0;">
+                    <i id="theme-icon" data-lucide="moon" size="20"></i>
+                </button>
                 <a href="login.html" class="btn-user"><i data-lucide="user" size="24"></i></a>
             </div>
 
@@ -607,6 +628,24 @@
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
+
+        // Lógica da Splash Screen aprimorada
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                if (!sessionStorage.getItem('splashShown')) {
+                    sessionStorage.setItem('splashShown', 'true');
+                    // Exibe por 2.5s antes de iniciar a transição
+                    setTimeout(() => {
+                        splash.classList.add('hidden');
+                        setTimeout(() => splash.remove(), 800);
+                    }, 2500); 
+                } else {
+                    splash.style.display = 'none'; // Remove imediatamente
+                    splash.remove();
+                }
+            }
+        });
     </script>
 </body>
 

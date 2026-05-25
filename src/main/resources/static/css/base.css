@@ -1,7 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-    --primary-purple: #5A36A3;
-    --primary-purple-light: #F3EFFF;
+    --primary-purple: #6c5ce7;
+    --primary-purple-light: #F3F0FF;
+    --primary-purple-dark: #4b40a3;
     --bg-body: #FDFBFF;
+    --bg-glass: rgba(255, 255, 255, 0.75);
+    --bg-glass-dark: rgba(255, 255, 255, 0.9);
     --white: #FFFFFF;
     --text-primary: #111827;
     --text-secondary: #6B7280;
@@ -10,9 +15,27 @@
     --danger-red: #E11D48;
     --warning-orange: #F59E0B;
     --support-blue: #0EA5E9;
-    --border-color: #F3F4F6;
-    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    --border-color: rgba(0, 0, 0, 0.04);
+    --card-shadow: 0 12px 36px -4px rgba(108, 92, 231, 0.12), 0 8px 16px -6px rgba(0, 0, 0, 0.06);
+    --float-shadow: 0 16px 40px rgba(108, 92, 231, 0.22);
     --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme="dark"] {
+    --primary-purple: #8c7ae6; /* Um roxo ligeiramente mais claro/brilhante para contraste no escuro */
+    --primary-purple-light: #1e1b4b; /* Fundo roxo muito escuro */
+    --primary-purple-dark: #6c5ce7;
+    --bg-body: #0f1115; /* Fundo quase preto */
+    --bg-glass: rgba(20, 22, 28, 0.85); /* Vidro escuro */
+    --bg-glass-dark: rgba(15, 17, 21, 0.95);
+    --white: #1f222a; /* Elementos em 'branco' viram cinza escuro no dark mode (ex: cards) */
+    --text-primary: #f3f4f6; /* Texto branco-gelo */
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    --border-color: rgba(255, 255, 255, 0.05);
+    --card-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.5), 0 8px 16px -6px rgba(0, 0, 0, 0.4);
+    --float-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -60,11 +83,13 @@ body {
     bottom: 0;
     width: 100%;
     max-width: 430px;
-    background-color: var(--white);
+    background-color: var(--bg-glass-dark);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     justify-content: space-around;
     padding: 12px 0 24px;
-    border-top: 1px solid #F3F4F6;
+    border-top: 1px solid var(--border-color);
     z-index: 1000;
 }
 
@@ -76,6 +101,11 @@ body {
     text-decoration: none;
     color: #9CA3AF;
     font-size: 11px;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+}
+
+.nav-item:active {
+    transform: scale(0.92);
 }
 
 .nav-item.active { color: var(--primary-purple); }

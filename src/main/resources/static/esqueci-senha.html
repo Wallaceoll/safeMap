@@ -7,38 +7,49 @@
     <title>Recuperar Senha - safeMap</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/login.css">
-    <link rel="stylesheet" href="css/recuperar.css">
+    <link rel="stylesheet" href="css/base.css?v=1.2">
+    <link rel="stylesheet" href="css/login.css?v=1.2">
+    <link rel="stylesheet" href="css/recuperar.css?v=1.2">
+    <script src="js/theme.js"></script>
 </head>
 
 <body>
     <div class="app-container fade-in">
         <header class="app-header">
-            <button class="back-btn" onclick="location.href='login.html'"><i data-lucide="arrow-left"
-                    size="24"></i></button>
+            <button class="back-btn" onclick="location.href='login.html'"><i data-lucide="arrow-left" size="24"></i></button>
             <h1 class="header-title">Recuperar Senha</h1>
+            <button id="theme-toggle-btn" class="theme-toggle-btn">
+                <i id="theme-icon" data-lucide="moon" size="22"></i>
+            </button>
         </header>
-        <div class="header-divider"></div>
 
         <main>
-            <p style="color: #6B7280; font-size: 14px; margin-bottom: 28px; line-height: 1.6; text-align: center;">
-                Insira o seu e-mail de cadastro para receber as instruções e o link de redefinição de senha.
-            </p>
-
-            <div id="alert-msg" class="alert"></div>
-
-            <form onsubmit="handleRecuperarSenha(event)">
-                <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail" required>
+            <div class="glass-card">
+                <div class="login-header-icon">
+                    <div class="icon-circle">
+                        <i data-lucide="key-round" size="28"></i>
+                    </div>
+                    <h2>Esqueceu a senha?</h2>
+                    <p>Insira o seu e-mail para receber as instruções de redefinição.</p>
                 </div>
 
-                <button type="submit" class="btn-primary" style="margin-top: 8px;">Enviar link de recuperação</button>
-            </form>
+                <div id="alert-msg" class="alert"></div>
 
-            <div class="back-to-login">
-                Lembrou da sua senha? <a href="login.html">Entrar</a>
+                <form onsubmit="handleRecuperarSenha(event)">
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="mail" size="18" class="input-icon-left"></i>
+                            <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="margin-top: 16px;">Enviar link de recuperação</button>
+                </form>
+
+                <div class="back-to-login">
+                    Lembrou da sua senha? <a href="login.html">Entrar</a>
+                </div>
             </div>
         </main>
 
@@ -70,6 +81,7 @@
             const emailInput = document.getElementById('email');
             const email = emailInput.value.trim();
             const alertMsg = document.getElementById('alert-msg');
+            const btn = e.target.querySelector('button[type="submit"]');
 
             alertMsg.style.display = 'none';
 
@@ -81,11 +93,14 @@
             }
 
             if (!validateEmail(email)) {
-                alertMsg.textContent = 'Por favor, insira um e-mail válido (ex: usuario@dominio.com).';
+                alertMsg.textContent = 'Por favor, insira um e-mail válido.';
                 alertMsg.className = 'alert alert-danger';
                 alertMsg.style.display = 'block';
                 return;
             }
+            
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
 
             fetch('/api/auth/esqueci-senha', {
                 method: 'POST',
@@ -106,10 +121,14 @@
                 })
                 .catch(error => {
                     console.warn('Erro na requisição, utilizando simulação local:', error);
-                    alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação foi enviado. Para fins de teste local, <a href="redefinir-senha.html?token=test-simulation-token" style="color: #2A9D8F; font-weight: 700; text-decoration: underline;">clique aqui para redefinir sua senha</a>.';
+                    alertMsg.innerHTML = '<strong>Sucesso!</strong> O link foi enviado. Para fins de teste local, <a href="redefinir-senha.html?token=test-simulation-token" style="color: inherit; font-weight: 700; text-decoration: underline;">clique aqui para redefinir sua senha</a>.';
                     alertMsg.className = 'alert alert-success';
                     alertMsg.style.display = 'block';
                     emailInput.value = '';
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Enviar link de recuperação';
                 });
         }
     </script>

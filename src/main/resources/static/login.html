@@ -7,8 +7,10 @@
     <title>Login - safeMap</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/base.css?v=1.2">
+    <link rel="stylesheet" href="css/login.css?v=1.2">
+    <!-- Adiciona lógica de tema (dark mode) antes de renderizar para evitar piscar -->
+    <script src="js/theme.js"></script>
 </head>
 
 <body>
@@ -16,57 +18,71 @@
         <header class="app-header">
             <button class="back-btn" onclick="history.back()"><i data-lucide="arrow-left" size="24"></i></button>
             <h1 class="header-title">Login</h1>
+            <button id="theme-toggle-btn" class="theme-toggle-btn">
+                <i id="theme-icon" data-lucide="moon" size="22"></i>
+            </button>
         </header>
-        <div class="header-divider"></div>
 
         <main>
-            <form onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail">
-                </div>
-
-                <div class="form-group">
-                    <label>Senha</label>
-                    <div class="input-wrapper">
-                        <input type="password" class="input-control" id="password" placeholder="Digite sua senha">
-                        <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
-                            <i data-lucide="eye-off" size="20"></i>
-                        </button>
+            <div class="glass-card">
+                <div class="login-header-icon">
+                    <div class="icon-circle">
+                        <i data-lucide="user-check" size="28"></i>
                     </div>
+                    <h2>Bem-vindo de volta!</h2>
+                    <p>Faça login para continuar sua jornada no SafeMap</p>
                 </div>
 
-                <div class="form-options">
-                    <label class="remember-me">
-                        <input type="checkbox" id="remember-me">
-                        Lembrar de mim
-                    </label>
-                    <a href="esqueci-senha.html" class="forgot-password">Esqueci minha senha</a>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="mail" size="18" class="input-icon-left"></i>
+                            <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="lock" size="18" class="input-icon-left"></i>
+                            <input type="password" class="input-control" id="password" placeholder="Digite sua senha">
+                            <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                                <i data-lucide="eye-off" size="20"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" id="remember-me">
+                            Lembrar de mim
+                        </label>
+                        <a href="esqueci-senha.html" class="forgot-password">Esqueci minha senha</a>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Entrar</button>
+                </form>
+
+                <div class="register-prompt">
+                    <p>Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
                 </div>
 
-                <button type="submit" class="btn-primary">Entrar</button>
-            </form>
+                <div class="divider">ou continue como</div>
 
-            <div style="text-align: center; margin-bottom: 32px;">
-                <p style="font-size: 14px; color: #6B7280;">Não tem uma conta? <a href="cadastro.html"
-                        style="color: var(--primary-purple); font-weight: 700; text-decoration: none;">Cadastre-se</a>
-                </p>
-            </div>
-
-            <div class="divider">ou continue como</div>
-
-            <div class="visitor-mode-card">
-                <div class="visitor-mode-header">
-                    <i data-lucide="user-round" size="24"></i>
-                    <h2>Modo visitante</h2>
+                <div class="visitor-mode-card">
+                    <div class="visitor-mode-header">
+                        <div class="visitor-icon-box"><i data-lucide="user-round" size="20"></i></div>
+                        <h3>Modo visitante</h3>
+                    </div>
+                    <p>Use o mapa para consultar ocorrências e locais de apoio livremente.</p>
+                    <a href="index.html" class="btn-outline">Continuar sem login</a>
                 </div>
-                <p>Use o mapa para consultar ocorrências e locais de apoio.</p>
-                <a href="index.html" class="btn-outline">Continuar como visitante</a>
             </div>
 
             <div class="security-badge">
                 <i data-lucide="shield-check" size="16"></i>
-                <span>Seus dados estão protegidos com criptografia de ponta a ponta</span>
+                <span>Seus dados estão protegidos com criptografia</span>
             </div>
         </main>
 
