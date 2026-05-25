@@ -66,6 +66,7 @@ public class SecurityConfig {
                         // Rotas públicas — leitura do mapa (visitante pode ver)
                         .requestMatchers(HttpMethod.GET, "/api/ocorrencias/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/apoio/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/rotas/**").permitAll()
 
                         // Frontend estático servido pelo Spring Boot
                         .requestMatchers(

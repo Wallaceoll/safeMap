@@ -68,6 +68,7 @@
         <div class="bottom-actions">
             <div class="float-stack">
                 <button class="btn-float-action" id="btn-locate"><i data-lucide="locate-fixed" size="24"></i></button>
+                <button class="btn-float-action" id="btn-route-trigger"><i data-lucide="route" size="24"></i></button>
                 <button class="btn-float-action" id="btn-legend-trigger"><i data-lucide="info" size="24"></i></button>
             </div>
             <a href="apoio.html" class="btn-help-center">
@@ -156,6 +157,76 @@
                     <i data-lucide="info" size="18" style="color: var(--primary-purple); flex-shrink: 0;"></i>
                     <p>As informações são baseadas em relatos da comunidade.</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Painel de Rota Segura -->
+        <div class="route-panel" id="route-panel">
+            <div class="route-sheet">
+                <div class="route-header">
+                    <h2>Calcular Rota Segura</h2>
+                    <button type="button" id="close-route-panel" class="close-route" style="background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="x" size="20" style="color: #9CA3AF;"></i>
+                    </button>
+                </div>
+                
+                <div class="route-inputs">
+                    <div class="route-input-group">
+                        <label for="route-origin">Ponto de Partida</label>
+                        <div class="route-input-wrapper">
+                            <i data-lucide="map-pin" size="16"></i>
+                            <input type="text" id="route-origin" placeholder="Ex: Minha Localização" autocomplete="off" style="padding-right: 40px;">
+                            <button type="button" class="route-gps-btn" id="btn-route-gps" title="Usar minha localização">
+                                <i data-lucide="locate-fixed" size="18"></i>
+                            </button>
+                        </div>
+                        <div id="route-origin-suggestions" class="route-suggestions"></div>
+                    </div>
+                    
+                    <div class="route-input-group">
+                        <label for="route-dest">Destino</label>
+                        <div class="route-input-wrapper">
+                            <i data-lucide="flag" size="16"></i>
+                            <input type="text" id="route-dest" placeholder="Digite o destino" autocomplete="off" required>
+                        </div>
+                        <div id="route-dest-suggestions" class="route-suggestions"></div>
+                    </div>
+                </div>
+
+                <button class="btn-route-action" id="btn-calculate-route">
+                    <i data-lucide="navigation" size="18"></i>
+                    <span>Traçar Rota Segura</span>
+                </button>
+
+                <div class="route-results" id="route-results">
+                    <!-- Cards de resultados das rotas gerados via JS -->
+                </div>
+
+                <button class="btn-route-action" id="btn-start-route" style="display: none; background-color: var(--primary-purple); margin-top: 12px;">
+                    <i data-lucide="check" size="18"></i>
+                    <span>Confirmar Rota</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de Navegação Ativa -->
+        <div class="active-route-bar" id="active-route-bar">
+            <div class="active-route-content">
+                <div class="active-route-icon">
+                    <i data-lucide="navigation" class="animate-pulse" style="color: var(--primary-purple);"></i>
+                </div>
+                <div class="active-route-info">
+                    <h4 id="active-route-dest-name">Navegando...</h4>
+                    <p id="active-route-meta"></p>
+                </div>
+            </div>
+            <div class="active-route-buttons">
+                <button type="button" class="btn-active-maps" id="btn-active-maps" title="Abrir no Google Maps">
+                    <i data-lucide="external-link" size="18"></i>
+                </button>
+                <button type="button" class="btn-active-cancel" id="btn-active-cancel" title="Encerrar Rota">
+                    <i data-lucide="square" size="18"></i>
+                </button>
             </div>
         </div>
 
@@ -312,6 +383,7 @@
     <script src="js/incidents.js?v=1.6"></script>
     <script src="js/filters.js?v=1.1"></script>
     <script src="js/tutorial.js?v=1.1"></script>
+    <script src="js/routing.js?v=1.0"></script>
 
     <script>
         lucide.createIcons();
