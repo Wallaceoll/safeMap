@@ -142,9 +142,7 @@ function dbOcorrenciaToReport(oc) {
 }
 
 async function loadIncidents() {
-    const userReports = JSON.parse(localStorage.getItem('userReports') || '[]');
-
-    // Tenta buscar do banco; em caso de falha usa só os dados locais
+    // Tenta buscar do banco; em caso de falha usa array vazio
     let dbReports = [];
     try {
         const ocorrencias = await smListarOcorrencias();
@@ -155,9 +153,8 @@ async function loadIncidents() {
         console.warn('SafeMap: não foi possível carregar ocorrências do banco.', err.message);
     }
 
-    // Mescla: dados estáticos de demonstração + banco + localStorage
-    const allDynamic = [...dbReports, ...userReports];
-    window.safeMap.groupedReports = buildGroupedReports(staticIncidents, allDynamic);
+    // Mescla: dados estáticos de demonstração + banco
+    window.safeMap.groupedReports = buildGroupedReports(staticIncidents, dbReports);
     window.safeMap.renderIncidents();
     map.addLayer(incidentLayer);
 

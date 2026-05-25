@@ -324,19 +324,6 @@
                     dataHora
                 });
 
-                // Também salva localmente para exibição imediata no mapa antes de recarregar
-                const typeSelect = document.getElementById('report-type');
-                const isDangerType = type === 'assedio' || type === 'importunacao-sexual' || type === 'agressao-fisica';
-                const localReport = {
-                    lat: reportLat, lng: reportLng,
-                    type: isDangerType ? 'danger' : 'warning',
-                    typeName: typeSelect.options[typeSelect.selectedIndex].text,
-                    description: desc, address: loc, targetGroup, date: datetime
-                };
-                const reports = JSON.parse(localStorage.getItem('userReports') || '[]');
-                reports.push(localReport);
-                localStorage.setItem('userReports', JSON.stringify(reports));
-
                 window.location.href = 'index.html?success=true';
 
             } catch (err) {
