@@ -111,10 +111,19 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação de senha foi enviado para o seu e-mail.';
+                    alertMsg.innerHTML = '<strong>Sucesso!</strong> O link de recuperação de senha foi enviado para o seu e-mail.';
                         alertMsg.className = 'alert alert-success';
                         alertMsg.style.display = 'block';
                         emailInput.value = '';
+
+                        // Escuta sinal da aba de redefinição para redirecionar esta aba
+                        const channel = new BroadcastChannel('safemap-reset');
+                        channel.onmessage = (event) => {
+                            if (event.data === 'reset-opened') {
+                                channel.close();
+                                window.location.href = 'login.html';
+                            }
+                        };
                     } else {
                         return response.text().then(text => { throw new Error(text) });
                     }
