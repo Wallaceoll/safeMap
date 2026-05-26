@@ -56,6 +56,7 @@
 .btn-user {
     width: 52px;
     height: 52px;
+    flex-shrink: 0;
     background-color: var(--primary-purple);
     border-radius: 50%;
     display: flex;
