@@ -53,7 +53,9 @@
                         <label>Telefone (opcional)</label>
                         <div class="input-wrapper">
                             <i data-lucide="phone" size="18" class="input-icon-left"></i>
-                            <input type="tel" class="input-control" id="telefone" placeholder="(DD) XXXXX-XXXX">
+                            <input type="tel" class="input-control" id="telefone"
+                                placeholder="(DD) XXXXX-XXXX" maxlength="15"
+                                oninput="mascaraTelefone(this)">
                         </div>
                     </div>
 
@@ -102,6 +104,16 @@
     <script src="js/api.js"></script>
     <script>
         lucide.createIcons();
+
+        // Máscara automática: (XX) XXXXX-XXXX
+        function mascaraTelefone(input) {
+            let digits = input.value.replace(/\D/g, '').slice(0, 11);
+            let formatted = '';
+            if (digits.length > 0) formatted = '(' + digits.slice(0, 2);
+            if (digits.length >= 2) formatted += ') ' + digits.slice(2, 7);
+            if (digits.length >= 7) formatted += '-' + digits.slice(7, 11);
+            input.value = formatted;
+        }
 
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);

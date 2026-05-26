@@ -9,7 +9,6 @@ import com.safemap.exception.SenhasNaoConferemException;
 import com.safemap.model.Usuario;
 import com.safemap.repository.UsuarioRepository;
 import com.safemap.security.JwtService;
-import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -93,10 +92,19 @@ public class AuthService {
         return AuthResponse.of(token, salvo.getId(), salvo.getNome(), salvo.getEmail());
     }
 
-    private String formatarTelefone(@Pattern(
-                regexp = "^(\\(\\d{2}\\)\\s?)(\\d{4,5}-\\d{4})$|^$",
-                message = "Telefone inválido. Use o formato (XX) XXXXX-XXXX"
-        ) String telefone) {
-        return telefone;
+    /**
+     * Normaliza qualquer formato de telefone brasileiro para (XX) XXXXX-XXXX ou (XX) XXXX-XXXX.
+     * Se vazio ou nulo, retorna string vazia.
+     */
+    private String formatarTelefone(String telefone) {
+        if (telefone == null || telefone.isBlank()) return "";
+        String digits = telefone.replaceAll("\\D", "");
+        if (digits.length() == 11) {
+            return "(%s) %s-%s".formatted(digits.substring(0, 2), digits.substring(2, 7), digits.substring(7));
+        }
+        if (digits.length() == 10) {
+            return "(%s) %s-%s".formatted(digits.substring(0, 2), digits.substring(2, 6), digits.substring(6));
+        }
+        return telefone; // fallback: retorna como veio
     }
 }
