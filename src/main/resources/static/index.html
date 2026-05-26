@@ -23,7 +23,7 @@
 
 <body>
     <!-- Splash Screen -->
-    <div class="splash-screen" id="splash-screen">
+    <div class="splash-screen" id="splash-screen" style="display: none;">
         <div class="splash-content">
             <div class="splash-logo-container">
                 <div class="splash-logo-icon">
@@ -630,22 +630,36 @@
         }
 
         // Lógica da Splash Screen aprimorada
-        window.addEventListener('load', () => {
+       (function(){
             const splash = document.getElementById('splash-screen');
-            if (splash) {
-                if (!sessionStorage.getItem('splashShown')) {
+            if(splash){
+                
+                if(!sessionStorage.getItem('splashShown')){
                     sessionStorage.setItem('splashShown', 'true');
-                    // Exibe por 2.5s antes de iniciar a transição
-                    setTimeout(() => {
-                        splash.classList.add('hidden');
-                        setTimeout(() => splash.remove(), 800);
-                    }, 2500); 
+                    
+                   
+                    splash.style.display = 'flex';
+
+                    const removeSplash = () => {
+                        if (!splash.classList.contains('hidden')){
+                            splash.classList.add('hidden');
+                            setTimeout(() => splash.remove(), 800);
+                        }
+                    };
+
+                    // Teto máximo de segurança de 2.5s para evitar travamento de tela por lentidão da rede externa
+                    const safetyTimeout = setTimeout(removeSplash, 2500);
+
+                    window.addEventListener('load', () =>{
+                        clearTimeout(safetyTimeout);
+                        setTimeout(removeSplash, 1200); // Exibe pelo tempo ideal de fixação da identidade visual
+                    });
                 } else {
-                    splash.style.display = 'none'; // Remove imediatamente
+                  
                     splash.remove();
                 }
             }
-        });
+        })();
     </script>
 </body>
 
