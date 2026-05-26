@@ -81,6 +81,21 @@ public class GlobalException {
                 .body(ErroResponse.of(404, "Recurso não encontrado"));
     }
 
+    /** Erro de envio de e-mail (SMTP) — senha de app inválida, timeout, etc. */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErroResponse> handleRuntime(RuntimeException ex) {
+        if (ex.getMessage() != null && ex.getMessage().contains("e-mail de recuperação")) {
+            ex.printStackTrace();
+            return ResponseEntity
+                    .status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(ErroResponse.of(503, ex.getMessage()));
+        }
+        ex.printStackTrace();
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErroResponse.of(500, "Erro interno. Tente novamente mais tarde."));
+    }
+
     /** Fallback — erros inesperados */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroResponse> handleGeneral(Exception ex) {
