@@ -41,11 +41,11 @@
 
     <div class="app-container">
         <div class="map-header">
-            <div class="search-row">
-                <div class="search-bar" style="position: relative;">
+            <div class="search-row" style="position: relative; z-index: 2010;">
+                <div class="search-bar" style="position: relative; z-index: 2020;">
                     <i data-lucide="search" size="20"></i>
                     <input type="text" id="main-search-input" placeholder="Pesquisar locais" autocomplete="off">
-                    <div id="main-search-suggestions" class="route-suggestions" style="border-radius: 16px; margin-top: 10px; left: 0; right: 0;"></div>
+                    <div id="main-search-suggestions" class="route-suggestions" style="border-radius: 16px; margin-top: 10px; left: 0; right: 0; z-index: 5000;"></div>
                 </div>
                 <button id="theme-toggle-btn" class="theme-toggle-btn-map" style="background: var(--bg-glass-dark); border: 1px solid var(--border-color); color: var(--text-secondary); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); flex-shrink: 0;">
                     <i id="theme-icon" data-lucide="moon" size="20"></i>
