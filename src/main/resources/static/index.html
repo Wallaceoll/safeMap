@@ -503,6 +503,11 @@
                 const insideSP = lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
                 if (!insideSP) return false;
 
+                // Evita geocodificar para a cidade/estado como um todo (evita focar no centro geográfico)
+                if (item.class === "boundary" || ["administrative", "city", "state", "country", "municipality"].includes(item.type)) {
+                    return false;
+                }
+
                 const addr = item.address || {};
                 const city = addr.city || addr.town || addr.municipality || addr.city_district || addr.county || "";
                 const cityLower = city.toLowerCase();
@@ -594,6 +599,10 @@
                                     const lon = cand.location.x;
                                     const insideSP = lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
                                     if (!insideSP) return false;
+
+                                    // Ignora resultados genéricos (cidade, estado, país)
+                                    const addrType = cand.attributes?.Addr_type || "";
+                                    if (["Locality", "State", "Country", "Subregion"].includes(addrType)) return false;
 
                                     const city = cand.attributes?.City || "";
                                     const region = cand.attributes?.Region || "";

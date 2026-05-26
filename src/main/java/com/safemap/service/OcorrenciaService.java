@@ -31,6 +31,11 @@ public class OcorrenciaService {
     @Transactional
     public OcorrenciaResponse criar(OcorrenciaRequest request) {
         try {
+            if (request.latitude() < -24.008 || request.latitude() > -23.356 ||
+                request.longitude() < -46.826 || request.longitude() > -46.365) {
+                throw new IllegalArgumentException("As coordenadas devem estar estritamente dentro da cidade de São Paulo.");
+            }
+
             Ocorrencia ocorrencia = new Ocorrencia();
             ocorrencia.setTipoOcorrencia(request.tipoOcorrencia());
             ocorrencia.setPublicoAlvo(request.publicoAlvo());

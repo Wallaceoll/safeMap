@@ -174,7 +174,14 @@
                         data = Array.isArray(rawData) ? rawData.filter(item => {
                             const lat = parseFloat(item.lat);
                             const lon = parseFloat(item.lon);
-                            return lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
+                            const insideSP = lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
+                            if (!insideSP) return false;
+
+                            // Ignora resultados genéricos que representam limites políticos inteiros
+                            if (item.class === "boundary" || ["administrative", "city", "state", "country", "municipality"].includes(item.type)) {
+                                return false;
+                            }
+                            return true;
                         }) : [];
                     }
 
@@ -192,6 +199,10 @@
                                             const lon = cand.location.x;
                                             const insideSP = lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
                                             if (!insideSP) return false;
+
+                                            // Ignora resultados genéricos (cidade, estado, país)
+                                            const addrType = cand.attributes?.Addr_type || "";
+                                            if (["Locality", "State", "Country", "Subregion"].includes(addrType)) return false;
 
                                             const city = cand.attributes?.City || "";
                                             const region = cand.attributes?.Region || "";
@@ -423,6 +434,10 @@
                 return;
             }
 
+            // Desabilita o botão imediatamente para iniciar a validação e impedir múltiplos cliques
+            btn.disabled = true;
+            btn.textContent = 'Validando endereço...';
+
             let reportLat = currentCoords ? currentCoords.lat : null;
             let reportLng = currentCoords ? currentCoords.lng : null;
 
@@ -437,7 +452,14 @@
                         const matchingItem = data.find(item => {
                             const lat = parseFloat(item.lat);
                             const lon = parseFloat(item.lon);
-                            return lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
+                            const insideSP = lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
+                            if (!insideSP) return false;
+
+                            // Ignora resultados genéricos que representam limites políticos inteiros
+                            if (item.class === "boundary" || ["administrative", "city", "state", "country", "municipality"].includes(item.type)) {
+                                return false;
+                            }
+                            return true;
                         });
                         if (matchingItem) {
                             reportLat = parseFloat(matchingItem.lat);
@@ -456,7 +478,19 @@
                                     const bestCandidate = arcgisData.candidates.find(cand => {
                                         const lat = cand.location.y;
                                         const lon = cand.location.x;
-                                        return lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
+                                        const insideSP = lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
+                                        if (!insideSP) return false;
+
+                                        // Ignora resultados genéricos (cidade, estado, país)
+                                        const addrType = cand.attributes?.Addr_type || "";
+                                        if (["Locality", "State", "Country", "Subregion"].includes(addrType)) return false;
+
+                                        const city = cand.attributes?.City || "";
+                                        const region = cand.attributes?.Region || "";
+                                        return city.toLowerCase().includes("são paulo") || 
+                                               city.toLowerCase().includes("sao paulo") ||
+                                               region.toLowerCase().includes("são paulo") || 
+                                               region.toLowerCase().includes("sao paulo");
                                     });
                                     if (bestCandidate) {
                                         reportLat = parseFloat(bestCandidate.location.y);
