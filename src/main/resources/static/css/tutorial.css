@@ -66,7 +66,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: #E5E7EB;
+    background-color: var(--border-color);
 }
 
 .dot-step.active {
@@ -86,7 +86,7 @@
     width: 48px;
     height: 48px;
     border-radius: 14px;
-    background-color: #F5F3FF;
+    background-color: var(--primary-purple-light);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -96,13 +96,13 @@
 .tutorial-body h2 {
     font-size: 18px;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
     margin-bottom: 8px;
 }
 
 .tutorial-body p {
     font-size: 14px;
-    color: #6B7280;
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
@@ -116,7 +116,7 @@
 .btn-skip {
     background: none;
     border: none;
-    color: #9CA3AF;
+    color: var(--text-muted);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -136,7 +136,7 @@
 .btn-prev {
     background: none;
     border: none;
-    color: #9CA3AF;
+    color: var(--text-muted);
     cursor: pointer;
     padding: 4px;
     display: flex;

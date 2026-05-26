@@ -49,7 +49,7 @@
     padding-left: 10px;
     font-size: 15px;
     outline: none;
-    color: #6B7280;
+    color: var(--text-primary);
     font-family: var(--font-family);
 }
 
@@ -140,7 +140,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     white-space: nowrap;
     border: 1px solid rgba(0,0,0,0.01);
-    color: #1F2937;
+    color: var(--text-primary);
     height: 36px;
     flex-shrink: 0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -480,7 +480,7 @@
 .legend-header h2 {
     font-size: 16px;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .legend-grid {
@@ -531,7 +531,7 @@
     align-items: center;
     gap: 4px;
     font-size: 13px;
-    color: #4B5563;
+    color: var(--text-secondary);
 }
 
 .dot {
@@ -545,7 +545,7 @@
 .dot.red { background-color: #EF4444; }
 
 .legend-notice {
-    background-color: #F5F3FF;
+    background-color: var(--primary-purple-light);
     border-radius: 12px;
     padding: 12px 16px;
     display: flex;
@@ -555,7 +555,7 @@
 
 .legend-notice p {
     font-size: 13px;
-    color: #6B7280;
+    color: var(--text-secondary);
     line-height: 1.4;
 }
 
@@ -608,7 +608,7 @@
 .route-header h2 {
     font-size: 16px;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .route-inputs {
@@ -628,7 +628,7 @@
     font-size: 14px;
     font-weight: 700;
     margin-bottom: 8px;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .route-input-wrapper {
@@ -648,11 +648,12 @@
     width: 100%;
     height: 46px;
     border-radius: 12px;
-    border: 1px solid #E5E7EB;
+    border: 1px solid var(--border-color);
     padding: 0 16px 0 46px;
     font-size: 14px;
     outline: none;
-    color: #374151;
+    color: var(--text-primary);
+    background-color: var(--bg-body);
     transition: border-color 0.2s ease;
 }
 
@@ -674,7 +675,7 @@
 }
 
 .route-gps-btn:hover {
-    background-color: #F5F3FF;
+    background-color: var(--primary-purple-light);
 }
 
 .route-input-wrapper input:focus {
@@ -700,8 +701,8 @@
 }
 
 .btn-route-action:disabled {
-    background-color: #E5E7EB;
-    color: #9CA3AF;
+    background-color: var(--border-color);
+    color: var(--text-muted);
     box-shadow: none;
     cursor: not-allowed;
 }
@@ -714,7 +715,7 @@
     padding-top: 16px;
 }
 .route-option-card {
-    border: 1px solid #E5E7EB;
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 14px;
     display: flex;
@@ -726,7 +727,7 @@
 
 .route-option-card.safe {
     border-left: 4px solid #10B981;
-    background-color: #ECFDF5;
+    background-color: rgba(16, 185, 129, 0.1);
 }
 
 .route-option-card.safe.selected {
@@ -735,7 +736,7 @@
 
 .route-option-card.direct {
     border-left: 4px solid #EF4444;
-    background-color: #FEF2F2;
+    background-color: rgba(239, 68, 68, 0.1);
 }
 
 .route-option-card.direct.selected {
@@ -751,12 +752,12 @@
 .route-info-left .route-name {
     font-size: 14px;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .route-info-left .route-meta {
     font-size: 12px;
-    color: #6B7280;
+    color: var(--text-secondary);
 }
 
 .route-info-right {
@@ -782,9 +783,8 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #E5E7EB;
-    border-radius: 12px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
     z-index: 5000;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     margin-top: 4px;
@@ -796,12 +796,12 @@
     padding: 10px 14px;
     cursor: pointer;
     font-size: 13px;
-    color: #374151;
-    border-bottom: 1px solid #F3F4F6;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .route-suggestions div:hover {
-    background-color: #F9FAFB;
+    background-color: var(--bg-body);
 }
 
 /* ── BARRA DE NAVEGAÇÃO ATIVA ── */
@@ -834,7 +834,7 @@
 .active-route-icon {
     width: 42px;
     height: 42px;
-    background-color: #F5F3FF;
+    background-color: var(--primary-purple-light);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -850,7 +850,7 @@
 .active-route-info h4 {
     font-size: 14px;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
     margin: 0 0 2px 0;
     white-space: nowrap;
     overflow: hidden;
@@ -860,7 +860,7 @@
 .active-route-info p {
     font-size: 12px;
     font-weight: 500;
-    color: #6B7280;
+    color: var(--text-secondary);
     margin: 0;
 }
 
@@ -874,19 +874,18 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 1px solid #E5E7EB;
+    border: 1px solid var(--border-color);
     background-color: var(--white);
     color: var(--primary-purple);
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-width: center;
     justify-content: center;
     transition: all 0.2s;
 }
 
 .btn-active-maps:hover {
-    background-color: #F5F3FF;
+    background-color: var(--primary-purple-light);
     border-color: rgba(90, 54, 163, 0.2);
 }
 
@@ -895,7 +894,7 @@
     height: 40px;
     border-radius: 50%;
     border: none;
-    background-color: #FEF2F2;
+    background-color: rgba(239, 68, 68, 0.1);
     color: #EF4444;
     cursor: pointer;
     display: flex;
@@ -905,7 +904,7 @@
 }
 
 .btn-active-cancel:hover {
-    background-color: #FEE2E2;
+    background-color: rgba(239, 68, 68, 0.2);
 }
 
 /* ── SPLASH SCREEN ── */
