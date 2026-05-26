@@ -42,9 +42,10 @@
     <div class="app-container">
         <div class="map-header">
             <div class="search-row">
-                <div class="search-bar">
+                <div class="search-bar" style="position: relative;">
                     <i data-lucide="search" size="20"></i>
-                    <input type="text" id="main-search-input" placeholder="Pesquisar locais">
+                    <input type="text" id="main-search-input" placeholder="Pesquisar locais" autocomplete="off">
+                    <div id="main-search-suggestions" class="route-suggestions" style="border-radius: 16px; margin-top: 10px; left: 0; right: 0;"></div>
                 </div>
                 <button id="theme-toggle-btn" class="theme-toggle-btn-map" style="background: var(--bg-glass-dark); border: 1px solid var(--border-color); color: var(--text-secondary); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); flex-shrink: 0;">
                     <i id="theme-icon" data-lucide="moon" size="20"></i>
@@ -627,9 +628,70 @@
         }
 
         const searchInput = document.getElementById('main-search-input');
+        const suggestionsBox = document.getElementById('main-search-suggestions');
+        let debounceTimerMainSearch;
+
         if (searchInput) {
+            // Evento de digitação para autocompletar sugestões
+            if (suggestionsBox) {
+                searchInput.addEventListener('input', () => {
+                    clearTimeout(debounceTimerMainSearch);
+                    const query = searchInput.value.trim();
+                    if (query.length < 4) {
+                        suggestionsBox.style.display = 'none';
+                        return;
+                    }
+
+                    debounceTimerMainSearch = setTimeout(() => {
+                        searchAddressSP(query)
+                            .then(({ results, typedNumber }) => {
+                                if (results.length > 0) {
+                                    suggestionsBox.innerHTML = '';
+                                    results.slice(0, 5).forEach(item => {
+                                        const road = item.address.road || item.address.pedestrian || item.display_name.split(',')[0];
+                                        const suburb = item.address.suburb || item.address.neighbourhood || 'São Paulo';
+                                        const displayName = `${road} - ${suburb}, SP`;
+
+                                        const div = document.createElement('div');
+                                        div.innerHTML = `<i data-lucide="map-pin" size="12" style="margin-right:6px; opacity:0.6;"></i> ${displayName}`;
+                                        div.addEventListener('click', () => {
+                                            const lat = parseFloat(item.lat);
+                                            const lon = parseFloat(item.lon);
+
+                                            window.safeMap.map.flyTo([lat, lon], 16, { animate: true, duration: 1.5 });
+
+                                            if (window.safeMap.updateUserLocation) {
+                                                window.safeMap.updateUserLocation(lat, lon);
+                                            }
+                                            searchInput.value = formatAddress(item, typedNumber);
+                                            suggestionsBox.style.display = 'none';
+                                        });
+                                        suggestionsBox.appendChild(div);
+                                    });
+                                    suggestionsBox.style.display = 'block';
+                                    if (window.lucide) window.lucide.createIcons();
+                                } else {
+                                    suggestionsBox.style.display = 'none';
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Suggestions error:', err);
+                            });
+                    }, 500);
+                });
+
+                // Fechar sugestões ao clicar fora
+                document.addEventListener('click', (e) => {
+                    if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                        suggestionsBox.style.display = 'none';
+                    }
+                });
+            }
+
+            // Busca ao pressionar Enter
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
+                    if (suggestionsBox) suggestionsBox.style.display = 'none';
                     const query = searchInput.value.trim();
                     if (!query) return;
 
