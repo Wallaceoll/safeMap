@@ -114,5 +114,12 @@ body {
 .nav-item.active .lucide-plus-circle, 
 .nav-item.active .lucide-handshake { fill: none; }
 .nav-item.active .lucide-map-pin circle { fill: var(--white); stroke: none; }
-
 .nav-item svg { width: 24px; height: 24px; stroke-width: 1.5px; }
+
+[data-theme="dark"] .input-control {
+    background-color: #000000 !important;
+}
+
+[data-theme="dark"] .input-control:focus {
+    background-color: #000000 !important;
+}
