@@ -94,7 +94,7 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background-color: #F3F0FF;
+    background-color: var(--primary-purple-light);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,9 +103,9 @@
 }
 
 .visitor-notice-content { flex: 1; }
-.visitor-notice-content h3 { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 4px; }
-.visitor-notice-content p { font-size: 13px; color: #4B5563; line-height: 1.4; }
-.close-btn { color: #9CA3AF; cursor: pointer; }
+.visitor-notice-content h3 { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.visitor-notice-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+.close-btn { color: var(--text-muted); cursor: pointer; }
 
 .scroller-wrapper {
     width: 100%;
