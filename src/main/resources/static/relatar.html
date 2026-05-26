@@ -473,9 +473,16 @@
                 }
             }
 
-            if (!reportLat || !reportLng) {
-                reportLat = -23.5505 + (Math.random() * 0.02 - 0.01);
-                reportLng = -46.6333 + (Math.random() * 0.02 - 0.01);
+            // Valida se as coordenadas foram encontradas e se estão estritamente dentro da cidade de São Paulo
+            const isInsideSP = reportLat && reportLng &&
+                               reportLat >= -24.008 && reportLat <= -23.356 &&
+                               reportLng >= -46.826 && reportLng <= -46.365;
+
+            if (!isInsideSP) {
+                alert("Não foi possível validar o local informado ou o endereço fica fora dos limites da cidade de São Paulo. Por favor, digite um endereço válido e selecione um item das sugestões.");
+                btn.disabled = false;
+                btn.textContent = 'Enviar ocorrência';
+                return;
             }
 
             const tipoOcorrencia = TIPO_MAP[type] || type.toUpperCase();
