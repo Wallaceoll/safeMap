@@ -1,17 +1,7 @@
 
 
 
-const incidentLayer = L.markerClusterGroup({
-    clusterPane: 'incidents',
-    maxClusterRadius: 40,
-    iconCreateFunction: function (cluster) {
-        return L.divIcon({
-            html: `<div style="background-color: #EF4444; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${cluster.getChildCount()}</div>`,
-            className: 'custom-cluster-icon',
-            iconSize: L.point(30, 30)
-        });
-    }
-});
+const incidentLayer = L.layerGroup();
 
 const riskZoneLayer = L.layerGroup();
 if (!map.getPane('riskZones')) {
@@ -26,7 +16,7 @@ function createIncidentIcon(type) {
     return L.divIcon({
         className: 'custom-incident-marker',
         html: `
-            <div class="incident-marker ${type}" style="position: relative; top: 0; left: 0;">
+            <div class="incident-marker ${type}" style="position: absolute; top: 50%; left: 50%;">
                 <div class="marker-glow"></div>
                 <div class="marker-core"><i data-lucide="alert-circle" size="14"></i></div>
             </div>
@@ -275,7 +265,7 @@ window.safeMap.renderIncidents = function () {
         incidentLayer.addLayer(marker);
     });
 
-    incidentLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
+    // incidentLayer.on('animationend', () => window.lucide && window.lucide.createIcons());
 };
 
 window.openIncidentDetails = async function (data) {
