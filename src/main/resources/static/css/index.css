@@ -19,6 +19,7 @@
 
 .search-bar {
     flex: 1;
+    min-width: 0;
     background-color: var(--bg-glass-dark);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -46,6 +47,7 @@
     border: none;
     background: none;
     flex: 1;
+    min-width: 0;
     padding-left: 10px;
     font-size: 15px;
     outline: none;
