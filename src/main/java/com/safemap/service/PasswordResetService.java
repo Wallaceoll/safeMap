@@ -1,8 +1,9 @@
 package com.safemap.service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import com.safemap.exception.TokenInvalidoException;
 import com.safemap.model.PasswordResetToken;
 import com.safemap.model.Usuario;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -27,10 +29,13 @@ public class PasswordResetService {
     private final UsuarioRepository            usuarioRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder              passwordEncoder;
-    private final Resend                       resend; // substitui JavaMailSender
+    private final SendGrid                     sendGrid;
 
     @Value("${safemap.cors.allowed-origins}")
     private String allowedOrigins;
+
+    @Value("${sendgrid.from-email}")
+    private String fromEmail;
 
     // -------------------------------------------------------
     //  ETAPA 1 — Solicitar recuperação
@@ -41,24 +46,19 @@ public class PasswordResetService {
         Optional<Usuario> optUsuario = usuarioRepository.findByEmail(email.toLowerCase().trim());
 
         if (optUsuario.isEmpty()) {
-            // Não revela ao cliente se o e-mail existe ou não
             log.info("Recuperação solicitada para e-mail não cadastrado: {}", email);
             return;
         }
 
         Usuario usuario = optUsuario.get();
 
-        // Invalida tokens anteriores para evitar múltiplos links válidos
         tokenRepository.invalidarTokensAnteriores(usuario);
 
-        // Gera e salva o novo token
         PasswordResetToken resetToken = new PasswordResetToken(usuario);
         tokenRepository.save(resetToken);
 
         log.info("Token gerado para: {} | expira em: {}", email, resetToken.getExpiracao());
 
-        // Envia o e-mail — agora lança RuntimeException se falhar
-        // para que o erro apareça claramente no log
         try {
             enviarEmailRecuperacao(usuario, resetToken.getToken());
             log.info("✅ E-mail de recuperação enviado com sucesso para: {}", email);
@@ -107,28 +107,40 @@ public class PasswordResetService {
     }
 
     // -------------------------------------------------------
-    //  Envio via Resend API (substituição do SMTP)
+    //  Envio via SendGrid API
     // -------------------------------------------------------
 
-    private void enviarEmailRecuperacao(Usuario usuario, String token) throws ResendException {
-        // Usa a primeira origem do CORS como base do link
+    private void enviarEmailRecuperacao(Usuario usuario, String token) throws IOException {
         String baseUrl = allowedOrigins.split(",")[0].trim();
         String link = baseUrl + "/redefinir-senha.html?token=" + token;
 
-        log.debug("Enviando e-mail via Resend para: {} | link: {}", usuario.getEmail(), link);
+        log.debug("Enviando e-mail via SendGrid para: {} | link: {}", usuario.getEmail(), link);
 
-        CreateEmailOptions params = CreateEmailOptions.builder()
-                .from("SafeMap <onboarding@resend.dev>") // troque pelo seu domínio verificado em produção
-                .to(usuario.getEmail())
-                .subject("SafeMap — Recuperação de senha")
-                .html(construirCorpoEmail(usuario.getNome(), link))
-                .build();
+        Email from = new Email(fromEmail, "SafeMap");
+        Email to = new Email(usuario.getEmail());
+        String subject = "SafeMap — Recuperação de senha";
+        Content content = new Content("text/html", construirCorpoEmail(usuario.getNome(), link));
 
-        resend.emails().send(params);
+        Mail mail = new Mail(from, subject, to, content);
+        mail.setReplyTo(new Email(fromEmail));
+
+        Request request = new Request();
+        request.setMethod(Method.POST);
+        request.setEndpoint("mail/send");
+        request.setBody(mail.build());
+
+        Response response = sendGrid.api(request);
+
+        log.info("SendGrid status: {} | body: {}", response.getStatusCode(), response.getBody());
+
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
+            throw new IOException("SendGrid retornou status " + response.getStatusCode()
+                    + ": " + response.getBody());
+        }
     }
 
     // -------------------------------------------------------
-    //  Template HTML do e-mail (inalterado)
+    //  Template HTML do e-mail
     // -------------------------------------------------------
 
     private String construirCorpoEmail(String nome, String link) {

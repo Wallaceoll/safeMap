@@ -1,18 +1,18 @@
 package com.safemap.config;
 
-import com.resend.Resend;
+import com.sendgrid.SendGrid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ResendConfig {
+public class SendGridConfig {
 
-    @Value("${resend.api-key}")
+    @Value("${sendgrid.api-key}")
     private String apiKey;
 
     @Bean
-    public Resend resendClient() {
-        return new Resend(apiKey);
+    public SendGrid sendGridClient() {
+        return new SendGrid(apiKey);
     }
 }
