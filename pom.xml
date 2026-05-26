@@ -52,11 +52,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        <!-- Resend (e-mail via API HTTP — substitui Spring Mail bloqueado no Railway) -->
+        <!-- Spring Mail -->
         <dependency>
-            <groupId>com.resend</groupId>
-            <artifactId>resend-java</artifactId>
-            <version>3.1.0</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <!-- JWT JJWT -->
         <dependency>

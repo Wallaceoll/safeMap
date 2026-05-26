@@ -43,6 +43,3 @@ get_logs.js
 
 ### SafeMap secrets ###
 src/main/resources/application-local.properties
-
-### Certificado
-certs

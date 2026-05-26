@@ -1,8 +1,5 @@
 package com.safemap.service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
 import com.safemap.exception.TokenInvalidoException;
 import com.safemap.model.PasswordResetToken;
 import com.safemap.model.Usuario;
@@ -11,11 +8,16 @@ import com.safemap.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -27,10 +29,13 @@ public class PasswordResetService {
     private final UsuarioRepository            usuarioRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder              passwordEncoder;
-    private final Resend                       resend; // substitui JavaMailSender
+    private final JavaMailSender               mailSender;
 
-    @Value("${safemap.cors.allowed-origins}")
-    private String allowedOrigins;
+    @Value("${safemap.frontend.url:http://localhost:8080}")
+    private String frontendUrl;
+
+    @Value("${spring.mail.username}")
+    private String emailRemetente;
 
     // -------------------------------------------------------
     //  ETAPA 1 — Solicitar recuperação
@@ -66,7 +71,7 @@ public class PasswordResetService {
             log.error("❌ FALHA ao enviar e-mail para {} — Causa: {} — Detalhe: {}",
                     email, e.getClass().getSimpleName(), e.getMessage(), e);
             throw new RuntimeException(
-                    "Não foi possível enviar o e-mail de recuperação. Verifique as configurações.", e);
+                    "Não foi possível enviar o e-mail de recuperação. Verifique as configurações de SMTP.", e);
         }
     }
 
@@ -107,29 +112,28 @@ public class PasswordResetService {
     }
 
     // -------------------------------------------------------
-    //  Envio via Resend API (substituição do SMTP)
+    //  Envio do e-mail HTML
     // -------------------------------------------------------
 
-    private void enviarEmailRecuperacao(Usuario usuario, String token) throws ResendException {
-        // Usa a primeira origem do CORS como base do link
-        String baseUrl = allowedOrigins.split(",")[0].trim();
-        String link = baseUrl + "/redefinir-senha.html?token=" + token;
+    private void enviarEmailRecuperacao(Usuario usuario, String token)
+            throws MessagingException, UnsupportedEncodingException {
 
-        log.debug("Enviando e-mail via Resend para: {} | link: {}", usuario.getEmail(), link);
+        String link = frontendUrl + "/redefinir-senha.html?token=" + token;
 
-        CreateEmailOptions params = CreateEmailOptions.builder()
-                .from("SafeMap <onboarding@resend.dev>") // troque pelo seu domínio verificado em produção
-                .to(usuario.getEmail())
-                .subject("SafeMap — Recuperação de senha")
-                .html(construirCorpoEmail(usuario.getNome(), link))
-                .build();
+        log.debug("Montando e-mail para: {} | link: {}", usuario.getEmail(), link);
 
-        resend.emails().send(params);
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(emailRemetente, "SafeMap");
+        helper.setTo(usuario.getEmail());
+        helper.setSubject("SafeMap — Recuperação de senha");
+        helper.setText(construirCorpoEmail(usuario.getNome(), link), true);
+
+        // Transport.send() é chamado aqui — qualquer falha de autenticação
+        // ou SMTP vai lançar MessagingException AGORA (não silenciosamente)
+        mailSender.send(message);
     }
-
-    // -------------------------------------------------------
-    //  Template HTML do e-mail (inalterado)
-    // -------------------------------------------------------
 
     private String construirCorpoEmail(String nome, String link) {
         return """
