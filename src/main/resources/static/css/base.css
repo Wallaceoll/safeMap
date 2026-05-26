@@ -117,10 +117,16 @@ body {
 .nav-item.active .lucide-map-pin circle { fill: var(--white); stroke: none; }
 .nav-item svg { width: 24px; height: 24px; stroke-width: 1.5px; }
 
-[data-theme="dark"] .input-control {
+[data-theme="dark"] .input-control,
+[data-theme="dark"] .route-input-wrapper input,
+[data-theme="dark"] .search-input,
+[data-theme="dark"] .search-bar {
     background-color: #000000 !important;
 }
 
-[data-theme="dark"] .input-control:focus {
+[data-theme="dark"] .input-control:focus,
+[data-theme="dark"] .route-input-wrapper input:focus,
+[data-theme="dark"] .search-input:focus,
+[data-theme="dark"] .search-bar:focus-within {
     background-color: #000000 !important;
 }
