@@ -9,13 +9,13 @@ let userCurrentLatLng = null;
 const userIcon = L.divIcon({
     className: 'user-location-marker',
     html: `
-        <div class="user-location" style="position: relative; top: 0; left: 0;">
+        <div class="user-location" style="position: absolute; top: 50%; left: 50%;">
             <div class="location-pulse"></div>
             <div class="location-dot"></div>
         </div>
     `,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
+    iconSize: [22, 22],
+    iconAnchor: [11, 11]
 });
 
 function updateUserLocation(lat, lng) {

@@ -330,6 +330,7 @@
     justify-content: center;
     z-index: 15;
     transform: translate(-50%, -50%);
+    pointer-events: none;
 }
 
 .location-dot {
@@ -349,6 +350,7 @@
     background: radial-gradient(circle, rgba(90, 54, 163, 0.25) 0%, rgba(90, 54, 163, 0) 70%);
     border-radius: 50%;
     animation: pulseSoft 3s infinite;
+    pointer-events: none;
 }
 
 @keyframes pulseSoft {
@@ -373,6 +375,7 @@
     flex-direction: column;
     gap: 16px;
     z-index: 2000;
+    pointer-events: none;
 }
 
 .float-stack {
@@ -380,6 +383,7 @@
     flex-direction: column;
     gap: 12px;
     align-items: flex-end;
+    pointer-events: none;
 }
 
 .btn-float-action {
@@ -395,6 +399,7 @@
     border: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    pointer-events: auto;
 }
 
 .btn-float-action:hover {
@@ -424,6 +429,7 @@
     text-decoration: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    pointer-events: auto;
 }
 
 .btn-help-center:hover {

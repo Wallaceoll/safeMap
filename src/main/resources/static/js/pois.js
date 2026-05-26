@@ -2,47 +2,15 @@
  * Gerenciamento de POIs do Overpass, Clusters e Ícones Customizados
  */
 
-const hospitalLayer = L.markerClusterGroup({
-    clusterPane: 'support',
-    maxClusterRadius: 50,
-    iconCreateFunction: function (cluster) {
-        return L.divIcon({
-            html: `<div style="background-color: #0EA5E9; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${cluster.getChildCount()}</div>`,
-            className: 'custom-cluster-icon',
-            iconSize: L.point(30, 30)
-        });
-    }
-});
-
-const policeLayer = L.markerClusterGroup({
-    clusterPane: 'support',
-    maxClusterRadius: 50,
-    iconCreateFunction: function (cluster) {
-        return L.divIcon({
-            html: `<div style="background-color: #0EA5E9; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${cluster.getChildCount()}</div>`,
-            className: 'custom-cluster-icon',
-            iconSize: L.point(30, 30)
-        });
-    }
-});
-
-const shelterLayer = L.markerClusterGroup({
-    clusterPane: 'support',
-    maxClusterRadius: 50,
-    iconCreateFunction: function (cluster) {
-        return L.divIcon({
-            html: `<div style="background-color: #0EA5E9; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${cluster.getChildCount()}</div>`,
-            className: 'custom-cluster-icon',
-            iconSize: L.point(30, 30)
-        });
-    }
-});
+const hospitalLayer = L.layerGroup();
+const policeLayer = L.layerGroup();
+const shelterLayer = L.layerGroup();
 
 function createSupportIcon(iconName) {
     return L.divIcon({
         className: 'custom-support-marker',
         html: `
-            <div class="support-shield" style="position: relative; pointer-events: none;">
+            <div class="support-shield" style="position: absolute; top: 50%; left: 50%; pointer-events: none;">
                 <div style="display: flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; width: 34px; height: 34px; background-color: #0EA5E9; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     <i data-lucide="${iconName}" size="18" style="color: white;"></i>
                 </div>
@@ -178,9 +146,9 @@ async function loadPOIs(forcedBBox = null) {
     }
 
     const updateIcons = () => window.lucide && window.lucide.createIcons();
-    hospitalLayer.on('animationend', updateIcons);
-    policeLayer.on('animationend', updateIcons);
-    shelterLayer.on('animationend', updateIcons);
+    // hospitalLayer.on('animationend', updateIcons);
+    // policeLayer.on('animationend', updateIcons);
+    // shelterLayer.on('animationend', updateIcons);
 
     map.on('layeradd', (e) => {
         if (e.layer instanceof L.Marker && e.layer.options.pane === 'support') {
