@@ -235,9 +235,7 @@ main { padding: 32px 20px 110px; flex: 1; overflow-y: auto; }
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-/* ==========================================================================
-   ESTILIZAÇÃO DOS MODAIS DE TERMOS E PRIVACIDADE (safeMap - Glassmorphism)
-   ========================================================================== */
+
 
 .modal-overlay { 
     position: fixed; 
