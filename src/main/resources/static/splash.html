@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>safeMap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        /* Estilos dedicados e isolados da Splash Screen */
+        .splash-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-body, #FDFBFF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+        }
+        .splash-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+        .splash-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .splash-logo-icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .splash-logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary, #111827);
+            font-family: 'Outfit', 'Inter', sans-serif;
+        }
+        .splash-loader {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-color, rgba(0,0,0,0.05));
+            border-top-color: var(--primary-purple, #6c5ce7);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-page">
+        <div class="splash-content">
+            <div class="splash-logo-container">
+                <div class="splash-logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 100%; height: 100%;">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 10.5c-1.93 0-3.5-1.57-3.5-3.5S10.07 5.5 12 5.5 15.5 7.07 15.5 9 13.93 12.5 12 12.5z" fill="#6c5ce7"/>
+                        <circle cx="12" cy="9" r="2.2" fill="#FFFFFF"/>
+                    </svg>
+                </div>
+                <div class="splash-logo-text">SafeMap</div>
+            </div>
+            <div class="splash-loader"></div>
+        </div>
+    </div>
+
+    <script>
+       
+        const savedTheme = localStorage.getItem('safemap_theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        // Aguarda 1.8 segundos para fixação visual da marca e redireciona automaticamente para o mapa principal
+        setTimeout(() => {
+            window.location.replace('index.html');
+        }, 1800);
+    </script>
+</body>
+</html>
