@@ -83,7 +83,7 @@
 
                     <div class="checkbox-container">
                         <input type="checkbox" id="terms" required>
-                        <label for="terms">Li e concordo com os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</label>
+                        <label for="terms">Li e concordo com os <a href="#" onclick="openModal(event, 'modal-termos')">Termos de Uso</a> e <a href="#" onclick="openModal(event, 'modal-privacidade')">Política de Privacidade</a>.</label>
                     </div>
 
                     <button type="submit" class="btn-primary">Criar minha conta</button>
@@ -99,11 +99,67 @@
                 <span>Seus dados não serão compartilhados com terceiros</span>
             </div>
         </main>
+       <!--Termos de Uso--> 
+    </div>
+    <div id="modal-termos" class="modal-overlay" onclick="closeModal(event, 'modal-termos')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-header">
+    <h3>Termos de Uso</h3>
+    <button class="modal-close-btn" onclick="closeModal(null, 'modal-termos')"><i data-lucide="x" size="20"></i></button>
+    </div>
+    <div class="modal-body">
+    <h4>1. Aceitação dos Termos</h4>
+    <p>Ao criar uma conta no safeMap, você concorda em cumprir e estar vinculado a estes Termos de Uso. Se você não concordar com qualquer parte das diretrizes, não deverá utilizar a plataforma.</p>
+    <h4>2. Propósito da Comunidade</h4>
+    <p>O safeMap é uma ferramenta colaborativa para o mapeamento urbano focado no acolhimento e na segurança preventiva de mulheres e do público LGBT+. Os usuários comprometem-se a interagir e relatar dados estritamente em conformidade com a realidade e de boa-fé.</p>
+    <h4>3. Conduta do Usuário</h4>
+    <p>É expressamente proibido utilizar a plataforma para propagar trotes, falsos relatos (fake news), comentários discriminatórios, discursos de ódio ou perseguição de indivíduos. O descumprimento desta cláusula resultará no banimento permanente imediato da conta cadastrada.</p>
+    <h4>4. Limitação de Responsabilidade</h4>
+    <p>O safeMap atua como um agregador informativo gerado de maneira descentralizada pela própria comunidade e em cooperação com provedores de mapas (como OpenStreetMap). O serviço não substitui os canais institucionais de segurança ou forças de policiamento do Estado. Em casos urgentes ou de perigo imediato, ligue para o número de emergência 190.</p>
+    </div>
+    <div class="modal-footer">
+    <button class="modal-btn-close" onclick="closeModal(null, 'modal-termos')">Entendido</button>
+    </div>
+    </div>
+    </div>
+
+    <!--Termos de Privacidade - LGPD-->
+    <div id="modal-privacidade" class="modal-overlay" onclick="closeModal(event, 'modal-privacidade')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-header">
+    <h3>Política de Privacidade</h3>
+    <button class="modal-close-btn" onclick="closeModal(null, 'modal-privacidade')"><i data-lucide="x" size="20"></i></button>
+    </div>
+    <div class="modal-body">
+    <h4>1. Coleta de Informações</h4>
+    <p>Coletamos exclusivamente os dados cadastrais inseridos por você de forma voluntária ao preencher este formulário, que compreendem o seu nome completo, endereço de e-mail e número telefônico (quando informado opcionalmente).</p>
+    <h4>2. Uso de Dados Geográficos</h4>
+    <p>A fim de habilitar o rastreamento seguro e o cálculo detalhado de trajetos, o aplicativo requer o consentimento para acesso à localização via GPS do dispositivo. Tais informações espaciais são processadas estritamente para renderização no mapa e não são mantidas sob monitoramento jurisdicional ou persistente.</p>
+    <h4>3. Compartilhamento de Dados</h4>
+    <p>Garantimos estrita confidencialidade técnica: seus dados individuais de identificação e contato <strong>nunca serão compartilhados com quaisquer entidades terceiras</strong> ou fins comerciais. Relatos de ocorrências enviados ao mapa são exibidos publicamente de maneira anônima e sob caráter coletivo.</p>
+    <h4>4. Práticas de Segurança</h4>
+    <p>Adotamos protocolos avançados de proteção da informação, incluindo criptografia unidirecional para o armazenamento de credenciais (senhas) e requisições seguras trafegadas sob tokens de autenticação (JWT).</p>
+    </div>
+    <div class="modal-footer">
+    <button class="modal-btn-close" onclick="closeModal(null, 'modal-privacidade')">Entendido</button>
+    </div>
+    </div>
     </div>
 
     <script src="js/api.js"></script>
     <script>
         lucide.createIcons();
+
+        //Termos de concentimento 
+        function openModal(e, modalId){
+            if(e) e.preventDefault();
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(e, modalId){
+            if(e) e.preventDefault();
+            document.getElementById(modalId).classList.remove('active')
+        }
 
         // Máscara automática: (XX) XXXXX-XXXX
         function mascaraTelefone(input) {
