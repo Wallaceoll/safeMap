@@ -162,15 +162,69 @@
 
     async function fetchSuggestions(query, suggestionsBox, onSelect) {
         try {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=5&countrycodes=br&addressdetails=1`;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=5&countrycodes=br&addressdetails=1&viewbox=-46.826,-23.356,-46.365,-24.008&bounded=1`;
             const response = await fetch(url, { headers: { 'User-Agent': 'SafeMap/1.0', 'Accept-Language': 'pt-BR' } });
-            const data = await response.json();
+            let data = [];
+            if (response.ok) {
+                data = await response.json();
+            }
             
-            const spResults = data.filter(item => {
-                const city = item.address?.city || item.address?.town || item.address?.municipality || item.address?.city_district || "";
+            let spResults = Array.isArray(data) ? data.filter(item => {
+                const lat = parseFloat(item.lat);
+                const lon = parseFloat(item.lon);
+                const insideSP = lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
+                if (!insideSP) return false;
+
+                const addr = item.address || {};
+                const city = addr.city || addr.town || addr.municipality || addr.city_district || addr.county || "";
                 const cityLower = city.toLowerCase();
-                return cityLower.includes("são paulo") || cityLower.includes("sao paulo");
-            });
+                const displayNameLower = (item.display_name || "").toLowerCase();
+                return cityLower.includes("são paulo") || 
+                       cityLower.includes("sao paulo") || 
+                       displayNameLower.includes("são paulo") || 
+                       displayNameLower.includes("sao paulo");
+            }) : [];
+
+            // Fallback para ArcGIS Geocoding se Nominatim falhar ou não achar resultados
+            if (spResults.length === 0) {
+                try {
+                    const arcgisUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&singleLine=${encodeURIComponent(query + ", Sao Paulo, Brazil")}&maxLocations=5&outFields=*&searchExtent=-46.826,-24.008,-46.365,-23.356`;
+                    const res = await fetch(arcgisUrl);
+                    if (res.ok) {
+                        const arcgisData = await res.json();
+                        if (arcgisData && arcgisData.candidates) {
+                            spResults = arcgisData.candidates
+                                .filter(cand => {
+                                    const lat = cand.location.y;
+                                    const lon = cand.location.x;
+                                    const insideSP = lat >= -24.008 && lat <= -23.356 && lon >= -46.826 && lon <= -46.365;
+                                    if (!insideSP) return false;
+
+                                    const city = cand.attributes?.City || "";
+                                    const region = cand.attributes?.Region || "";
+                                    return city.toLowerCase().includes("são paulo") || 
+                                           city.toLowerCase().includes("sao paulo") ||
+                                           region.toLowerCase().includes("são paulo") || 
+                                           region.toLowerCase().includes("sao paulo");
+                                })
+                                .map(cand => ({
+                                    lat: cand.location.y,
+                                    lon: cand.location.x,
+                                    display_name: cand.attributes.LongLabel || cand.address,
+                                    address: {
+                                        road: cand.attributes.StAddr || (cand.attributes.StPreType ? (cand.attributes.StPreType + " " + cand.attributes.StName) : cand.attributes.StName) || "",
+                                        house_number: cand.attributes.AddNum || "",
+                                        suburb: cand.attributes.Nbrhd || cand.attributes.District || "",
+                                        city: cand.attributes.City || "São Paulo",
+                                        state: cand.attributes.RegionAbbr || "SP"
+                                    }
+                                }));
+                        }
+                    }
+                } catch (arcgisErr) {
+                    console.error("ArcGIS geocoding suggestions fallback error:", arcgisErr);
+                }
+            }
 
             if (spResults.length > 0) {
                 suggestionsBox.innerHTML = '';
