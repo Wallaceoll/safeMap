@@ -32,25 +32,27 @@
                     <p>Relate ocorrências e torne as ruas mais seguras para todos.</p>
                 </div>
 
+                <div id="alert-msg" class="alert alert-danger" style="display: none; margin-bottom: 20px;"></div>
+
                 <form onsubmit="handleCadastro(event)">
                     <div class="form-group">
-                        <label>Nome completo</label>
+                        <label for="name">Nome completo</label>
                         <div class="input-wrapper">
                             <i data-lucide="user" size="18" class="input-icon-left"></i>
-                            <input type="text" class="input-control" id="name" placeholder="Digite seu nome">
+                            <input type="text" class="input-control" id="name" placeholder="Digite seu nome" required>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>E-mail</label>
+                        <label for="email">E-mail</label>
                         <div class="input-wrapper">
                             <i data-lucide="mail" size="18" class="input-icon-left"></i>
-                            <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail">
+                            <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail" required>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Telefone (opcional)</label>
+                        <label for="telefone">Telefone (opcional)</label>
                         <div class="input-wrapper">
                             <i data-lucide="phone" size="18" class="input-icon-left"></i>
                             <input type="tel" class="input-control" id="telefone"
@@ -60,22 +62,22 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Senha</label>
+                        <label for="password">Senha</label>
                         <div class="input-wrapper">
                             <i data-lucide="lock" size="18" class="input-icon-left"></i>
-                            <input type="password" class="input-control" id="password" placeholder="Crie uma senha forte">
-                            <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                            <input type="password" class="input-control" id="password" placeholder="Crie uma senha forte" required />
+                            <button type="button" class="toggle-password" aria-label="Mostrar/Ocultar senha" onclick="togglePassword('password', this)">
                                 <i data-lucide="eye-off" size="20"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Confirmar Senha</label>
+                        <label for="confirm-password">Confirmar Senha</label>
                         <div class="input-wrapper">
                             <i data-lucide="shield-check" size="18" class="input-icon-left"></i>
-                            <input type="password" class="input-control" id="confirm-password" placeholder="Repita a senha">
-                            <button type="button" class="toggle-password" onclick="togglePassword('confirm-password', this)">
+                            <input type="password" class="input-control" id="confirm-password" placeholder="Repita a senha" required />
+                            <button type="button" class="toggle-password" aria-label="Mostrar/Ocultar confirmação de senha" onclick="togglePassword('confirm-password', this)">
                                 <i data-lucide="eye-off" size="20"></i>
                             </button>
                         </div>
@@ -194,16 +196,19 @@
             alertMsg.style.display ='none';
 
             if (!name || !email || !password || !confirmPassword) {
+                alertMsg.className = 'alert alert-danger';
                 alertMsg.textContent = 'Preencha todos os campos obrigatórios';
                 alertMsg.style.display = 'block';
                 return;
             }
             if (password !== confirmPassword) {
+                alertMsg.className = 'alert alert-danger';
                 alertMsg.textContent = 'As senhas não coincidem';
                 alertMsg.style.display = 'block';
                 return;
             }
             if (!terms) {
+                alertMsg.className = 'alert alert-danger';
                 alertMsg.textContent = 'Você precisa aceitar os termos.';
                 alertMsg.style.display = 'block';
                 return;
@@ -223,6 +228,7 @@
                 }, 1500);
                 
             } catch (err) {
+                alertMsg.className = 'alert alert-danger';
                 alertMsg.textContent = err.message;
                 alertMsg.style.display = 'block';
                 btn.disabled = false;

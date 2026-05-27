@@ -33,29 +33,31 @@
                     <p>Faça login para continuar sua jornada no SafeMap</p>
                 </div>
 
+                <div id="alert-msg" class="alert alert-danger" style="display: none; margin-bottom: 20px;"></div>
+
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
-                        <label>E-mail</label>
+                        <label for="email">E-mail</label>
                         <div class="input-wrapper">
                             <i data-lucide="mail" size="18" class="input-icon-left"></i>
-                            <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail">
+                            <input type="email" class="input-control" id="email" placeholder="Digite seu e-mail" required />
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Senha</label>
+                        <label for="password">Senha</label>
                         <div class="input-wrapper">
                             <i data-lucide="lock" size="18" class="input-icon-left"></i>
-                            <input type="password" class="input-control" id="password" placeholder="Digite sua senha">
-                            <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                            <input type="password" class="input-control" id="password" placeholder="Digite sua senha" required />
+                            <button type="button" class="toggle-password" aria-label="Mostrar/Ocultar senha" onclick="togglePassword('password', this)">
                                 <i data-lucide="eye-off" size="20"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="form-options">
-                        <label class="remember-me">
-                            <input type="checkbox" id="remember-me">
+                        <label class="remember-me" for="remember-me">
+                            <input type="checkbox" id="remember-me" />
                             Lembrar de mim
                         </label>
                         <a href="esqueci-senha.html" class="forgot-password">Esqueci minha senha</a>
@@ -131,8 +133,16 @@
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('remember-me');
             const btn = e.target.querySelector('button[type="submit"]');
+            
+            const alertMsg = document.getElementById('alert-msg');
+            alertMsg.style.display = 'none';
 
-            if (!email || !password) { alert('Por favor, preencha o e-mail e a senha.'); return; }
+            if (!email || !password) { 
+                alertMsg.className = 'alert alert-danger';
+                alertMsg.textContent = 'Por favor, preencha o e-mail e a senha.';
+                alertMsg.style.display = 'block';
+                return; 
+            }
 
             btn.disabled = true;
             btn.textContent = 'Entrando...';
@@ -151,7 +161,9 @@
                 location.href = 'index.html';
 
             } catch (err) {
-                alert(err.message);
+                alertMsg.className = 'alert alert-danger';
+                alertMsg.textContent = err.message;
+                alertMsg.style.display = 'block';
                 btn.disabled = false;
                 btn.textContent = 'Entrar';
             }

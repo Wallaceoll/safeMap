@@ -44,7 +44,7 @@
             <div class="search-row" style="position: relative; z-index: 2010;">
                 <div class="search-bar" style="position: relative; z-index: 2020;">
                     <i data-lucide="search" size="20"></i>
-                    <input type="text" id="main-search-input" placeholder="Pesquisar locais" autocomplete="off">
+                    <input type="text" id="main-search-input" aria-label="Pesquisar locais" placeholder="Pesquisar locais" autocomplete="off" />
                     <div id="main-search-suggestions" class="route-suggestions" style="border-radius: 16px; margin-top: 10px; left: 0; right: 0; z-index: 5000;"></div>
                 </div>
                 <button id="theme-toggle-btn" class="theme-toggle-btn-map" style="background: var(--bg-glass-dark); border: 1px solid var(--border-color); color: var(--text-secondary); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); flex-shrink: 0;">
@@ -197,8 +197,8 @@
                         <label for="route-origin">Ponto de Partida</label>
                         <div class="route-input-wrapper">
                             <i data-lucide="map-pin" size="16"></i>
-                            <input type="text" id="route-origin" placeholder="Ex: Minha Localização" autocomplete="off" style="padding-right: 40px;">
-                            <button type="button" class="route-gps-btn" id="btn-route-gps" title="Usar minha localização">
+                            <input type="text" id="route-origin" placeholder="Ex: Minha Localização" autocomplete="off" style="padding-right: 40px;" />
+                            <button type="button" class="route-gps-btn" id="btn-route-gps" title="Usar minha localização" aria-label="Usar minha localização do GPS na origem">
                                 <i data-lucide="locate-fixed" size="18"></i>
                             </button>
                         </div>
@@ -209,7 +209,7 @@
                         <label for="route-dest">Destino</label>
                         <div class="route-input-wrapper">
                             <i data-lucide="flag" size="16"></i>
-                            <input type="text" id="route-dest" placeholder="Digite o destino" autocomplete="off" required>
+                            <input type="text" id="route-dest" placeholder="Digite o destino" autocomplete="off" required />
                         </div>
                         <div id="route-dest-suggestions" class="route-suggestions"></div>
                     </div>
@@ -409,6 +409,15 @@
 
     <script>
         lucide.createIcons();
+
+        function showMapAlert(msg, type = "error") {
+            const toast = document.createElement('div');
+            const bg = type === 'error' ? '#EF4444' : '#10B981';
+            toast.style.cssText = `position: fixed; top: 120px; left: 50%; transform: translateX(-50%); background: ${bg}; color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);`;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
         const legendOverlay = document.getElementById('legend-overlay');
         const detailsOverlay = document.getElementById('details-overlay');
@@ -725,14 +734,14 @@
                                 }
                                 searchInput.value = formatAddress(result, typedNumber);
                             } else {
-                                alert('Local não encontrado na cidade de São Paulo. Tente digitar de outra forma.');
+                                showMapAlert('Local não encontrado na cidade de São Paulo. Tente digitar de outra forma.');
                             }
                         })
                         .catch(err => {
                             searchInput.disabled = false;
                             searchInput.placeholder = originalPlaceholder;
                             console.error('Geocoding error:', err);
-                            alert('Erro ao buscar o local. Verifique sua conexão.');
+                            showMapAlert('Erro ao buscar o local. Verifique sua conexão.');
                         });
                 }
             });

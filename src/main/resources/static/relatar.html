@@ -30,10 +30,11 @@
             </div>
 
             <div class="glass-card">
+                <div id="alert-msg" class="alert alert-danger" style="display: none; margin-bottom: 20px;"></div>
                 <form onsubmit="handleReport(event)">
                     
                     <div class="form-group">
-                        <label>Tipo de ocorrência</label>
+                        <label for="report-type">Tipo de ocorrência</label>
                         <div class="input-wrapper">
                             <select class="input-control" id="report-type" required>
                                 <option value="" disabled selected>Selecione o tipo</option>
@@ -48,15 +49,15 @@
                     <div class="form-group">
                         <label>Público-alvo do risco (Selecione uma ou mais opções)</label>
                         <div class="checkbox-group">
-                            <label class="custom-checkbox-btn">
-                                <input type="checkbox" name="target-group" value="women" checked>
+                            <label class="custom-checkbox-btn" for="target-women">
+                                <input type="checkbox" name="target-group" id="target-women" value="women" checked />
                                 <div class="checkbox-content">
                                     <i data-lucide="venus" size="18"></i>
                                     <span>Mulheres</span>
                                 </div>
                             </label>
-                            <label class="custom-checkbox-btn">
-                                <input type="checkbox" name="target-group" value="lgbt">
+                            <label class="custom-checkbox-btn" for="target-lgbt">
+                                <input type="checkbox" name="target-group" id="target-lgbt" value="lgbt" />
                                 <div class="checkbox-content">
                                     <i data-lucide="flag" size="18"></i>
                                     <span>LGBT+</span>
@@ -67,7 +68,7 @@
 
                     <div class="form-group">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <label style="margin-bottom: 0;">Descrição (opcional)</label>
+                            <label style="margin-bottom: 0;" for="report-desc">Descrição (opcional)</label>
                             <span id="char-count" class="char-counter">0/200</span>
                         </div>
                         <div class="input-wrapper">
@@ -76,11 +77,11 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Local da ocorrência</label>
+                        <label for="report-loc">Local da ocorrência</label>
                         <div class="input-wrapper">
                             <i data-lucide="map-pin" size="18" class="input-icon-left"></i>
-                            <input type="text" class="input-control" id="report-loc" placeholder="Endereço ou use o GPS" required autocomplete="off">
-                            <button type="button" class="gps-btn" onclick="getCurrentLocation()" title="Usar localização atual">
+                            <input type="text" class="input-control" id="report-loc" placeholder="Endereço ou use o GPS" required autocomplete="off" />
+                            <button type="button" class="gps-btn" onclick="getCurrentLocation()" title="Usar localização atual" aria-label="Usar localização atual do GPS">
                                 <i data-lucide="locate-fixed" size="20"></i>
                             </button>
                             <div id="address-suggestions" class="suggestions-list"></div>
@@ -88,10 +89,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Data e hora</label>
+                        <label for="report-datetime">Data e hora</label>
                         <div class="input-wrapper">
                             <i data-lucide="calendar" size="18" class="input-icon-left"></i>
-                            <input type="datetime-local" class="input-control" id="report-datetime" required>
+                            <input type="datetime-local" class="input-control" id="report-datetime" required />
                         </div>
                     </div>
 
@@ -429,8 +430,13 @@
             const targetGroup = Array.from(document.querySelectorAll('input[name="target-group"]:checked')).map(el => el.value);
             const btn = e.target.querySelector('button[type="submit"]');
 
+            const alertMsg = document.getElementById('alert-msg');
+            alertMsg.style.display = 'none';
+
             if (targetGroup.length === 0) {
-                alert("Por favor, selecione pelo menos um público-alvo.");
+                alertMsg.className = 'alert alert-danger';
+                alertMsg.textContent = 'Por favor, selecione pelo menos um público-alvo.';
+                alertMsg.style.display = 'block';
                 return;
             }
 
@@ -513,7 +519,9 @@
                                reportLng >= -46.826 && reportLng <= -46.365;
 
             if (!isInsideSP) {
-                alert("Não foi possível validar o local informado ou o endereço fica fora dos limites da cidade de São Paulo. Por favor, digite um endereço válido e selecione um item das sugestões.");
+                alertMsg.className = 'alert alert-danger';
+                alertMsg.textContent = 'Não foi possível validar o local informado ou o endereço fica fora dos limites de São Paulo. Por favor, digite um endereço válido.';
+                alertMsg.style.display = 'block';
                 btn.disabled = false;
                 btn.textContent = 'Enviar ocorrência';
                 return;
@@ -540,7 +548,9 @@
                 window.location.href = 'index.html?success=true';
 
             } catch (err) {
-                alert(err.message);
+                alertMsg.className = 'alert alert-danger';
+                alertMsg.textContent = err.message;
+                alertMsg.style.display = 'block';
                 btn.disabled = false;
                 btn.textContent = 'Enviar ocorrência';
             }
