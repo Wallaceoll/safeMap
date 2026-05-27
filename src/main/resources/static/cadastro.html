@@ -190,14 +190,23 @@
             const terms = document.getElementById('terms').checked;
             const btn = e.target.querySelector('button[type="submit"]');
 
+            const alertMsg =document.getElementById('alert-msg');
+            alertMsg.style.display ='none';
+
             if (!name || !email || !password || !confirmPassword) {
-                alert('Preencha todos os campos obrigatórios.'); return;
+                alertMsg.textContent = 'Preencha todos os campos obrigatórios';
+                alertMsg.style.display = 'block';
+                return;
             }
             if (password !== confirmPassword) {
-                alert('As senhas não coincidem.'); return;
+                alertMsg.textContent = 'As senhas não coincidem';
+                alertMsg.style.display = 'block';
+                return;
             }
             if (!terms) {
-                alert('Você precisa aceitar os termos.'); return;
+                alertMsg.textContent = 'Você precisa aceitar os termos.';
+                alertMsg.style.display = 'block';
+                return;
             }
 
             btn.disabled = true;
@@ -205,10 +214,17 @@
 
             try {
                 await smCadastrar(name, email, password, confirmPassword, telefone);
-                alert('Conta criada com sucesso!');
-                location.href = 'index.html';
+                alertMsg.className = 'alert alert-success';
+                alertMsg.textContent = 'Conta criada com sucesso! Redirecionando...';
+                alertMsg.style.display = 'block';
+
+                setTimeout(() => {
+                    location.href = 'index.html';
+                }, 1500);
+                
             } catch (err) {
-                alert(err.message);
+                alertMsg.textContent = err.message;
+                alertMsg.style.display = 'block';
                 btn.disabled = false;
                 btn.textContent = 'Criar minha conta';
             }

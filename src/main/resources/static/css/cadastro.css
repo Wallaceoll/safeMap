@@ -351,3 +351,23 @@ main { padding: 32px 20px 110px; flex: 1; overflow-y: auto; }
 .modal-btn-close:hover { 
     opacity: 0.9; 
 } 
+.alert {
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    border: 1px solid transparent;
+}
+
+.alert-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.alert-success {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
