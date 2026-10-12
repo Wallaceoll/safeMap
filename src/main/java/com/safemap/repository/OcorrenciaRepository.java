@@ -55,9 +55,29 @@ public interface OcorrenciaRepository extends JpaRepository<Ocorrencia, Long> {
      * List<Ocorrencia> findByRaioPostGIS(double lat, double lng, double raioMetros);
      */
 
-    /** Para o heatmap: retorna todos os pontos com lat/lng. */
-    @Query("SELECT o FROM Ocorrencia o ORDER BY o.criadoEm DESC")
+    /**
+     * Para o heatmap: retorna todos os pontos com lat/lng.
+     * O JOIN FETCH carrega o publicoAlvo na mesma consulta (sem ele, seria
+     * 1 consulta extra por ocorrência — problema N+1).
+     */
+    @Query("SELECT DISTINCT o FROM Ocorrencia o LEFT JOIN FETCH o.publicoAlvo ORDER BY o.criadoEm DESC")
     List<Ocorrencia> findAllForHeatmap();
+
+    /**
+     * Ocorrências dentro de um retângulo, só com o necessário para o risco das rotas.
+     * Mesma ordem do heatmap (mais recentes primeiro), que define qual relato gera o desvio.
+     */
+    @Query("""
+            SELECT new com.safemap.repository.IncidenteRisco(o.latitude, o.longitude, o.tipoOcorrencia)
+            FROM Ocorrencia o
+            WHERE o.latitude BETWEEN :south AND :north
+              AND o.longitude BETWEEN :west AND :east
+            ORDER BY o.criadoEm DESC
+            """)
+    List<IncidenteRisco> findIncidentesRiscoInBounds(@Param("south") double south,
+                                                     @Param("west") double west,
+                                                     @Param("north") double north,
+                                                     @Param("east") double east);
 
     /** Filtra por tipo (pode ser expandido para o mapa). */
     List<Ocorrencia> findByTipoOcorrencia(TipoOcorrencia tipo);
