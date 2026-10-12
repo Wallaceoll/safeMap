@@ -128,7 +128,7 @@
     </div>
 
     <script src="js/api.js?v=1.0"></script>
-    <script src="js/geo.js?v=1.1"></script>
+    <script src="js/geo.js?v=1.2"></script>
     <script>
         // Guarda de rota — exige JWT do banco (não apenas isLoggedIn local)
         if (!smGetToken()) { window.location.href = 'login.html'; }
@@ -159,7 +159,7 @@
         locInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             const query = locInput.value;
-            if (query.length < 5) {
+            if (query.length < 3) {
                 suggestionsBox.style.display = 'none';
                 return;
             }
@@ -168,31 +168,24 @@
                 try {
                     // allowCities=false: uma ocorrência precisa de um endereço, não do centro da cidade
                     const near = currentCoords || undefined;
-                    const { results, typedNumber } = await window.safeMap.geo.searchAddress(query, { near, allowCities: false, autocomplete: true });
-                    const data = results.slice(0, 5);
-
-                    if (data && data.length > 0) {
-                        suggestionsBox.innerHTML = '';
-                        data.forEach(item => {
-                            const displayName = window.safeMap.geo.formatAddress(item, typedNumber);
-
-                            const div = document.createElement('div');
-                            div.className = 'suggestion-item';
-                            div.innerHTML = `<i data-lucide="map-pin" size="14"></i> <span>${displayName}</span>`;
-                            div.onclick = () => {
+                    // Chamado a cada provedor que responde; ignora se o usuário já digitou outra coisa
+                    const mostrar = (results, typedNumber) => {
+                        if (locInput.value !== query) return;
+                        window.safeMap.geo.renderSuggestions(suggestionsBox, results, {
+                            itemClass: 'suggestion-item',
+                            label: (item) => window.safeMap.geo.formatAddress(item, typedNumber),
+                            onSelect: (item) => {
+                                const displayName = window.safeMap.geo.formatAddress(item, typedNumber);
                                 locInput.value = displayName;
                                 locInput.setAttribute('data-last-gps', displayName);
                                 currentCoords = { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
                                 suggestionsBox.style.display = 'none';
-                                lucide.createIcons();
-                            };
-                            suggestionsBox.appendChild(div);
+                            }
                         });
-                        suggestionsBox.style.display = 'block';
-                        lucide.createIcons();
-                    } else {
-                        suggestionsBox.style.display = 'none';
-                    }
+                    };
+                    const { results, typedNumber } = await window.safeMap.geo.searchAddress(query,
+                        { near, allowCities: false, autocomplete: true, onUpdate: mostrar });
+                    mostrar(results, typedNumber);
                 } catch (error) {
                     console.error("Erro ao buscar sugestões:", error);
                 }

@@ -45,6 +45,30 @@ class OpenRouteServiceTest {
 
         // Cidades viram class=place/type=city, para o frontend poder descartá-las ao relatar
         assertThat(itens.get(1)).containsEntry("class", "place").containsEntry("type", "city");
+        assertThat(itens.get(0).get("name")).isNull();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void lugaresTrazemONomeSeparadoDoEndereco() throws Exception {
+        String json = """
+                {"type":"FeatureCollection","features":[
+                  {"geometry":{"type":"Point","coordinates":[-46.5698,-23.5921]},
+                   "properties":{"layer":"venue","name":"McDonald's","label":"McDonald's, São Paulo, SP, Brasil",
+                     "street":"Rua Costa Barros","neighbourhood":"São Lucas","locality":"São Paulo",
+                     "region_a":"SP","country_a":"BRA"}},
+                  {"geometry":{"type":"Point","coordinates":[-46.5800,-23.5850]},
+                   "properties":{"layer":"venue","name":"Galo Jack Mix Bar","locality":"São Paulo",
+                     "region_a":"SP","country_a":"BRA"}}
+                ]}""";
+
+        List<Map<String, Object>> itens = service.converterFeatures(mapper.readTree(json));
+
+        assertThat(itens.get(0)).containsEntry("name", "McDonald's");
+        assertThat((Map<String, Object>) itens.get(0).get("address")).containsEntry("road", "Rua Costa Barros");
+        // Sem rua cadastrada: o nome não vira "rua" (o frontend mostra só o nome + bairro/cidade)
+        assertThat(itens.get(1)).containsEntry("name", "Galo Jack Mix Bar");
+        assertThat((Map<String, Object>) itens.get(1).get("address")).containsEntry("road", null);
     }
 
     @Test

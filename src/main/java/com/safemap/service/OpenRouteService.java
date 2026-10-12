@@ -25,7 +25,6 @@ import java.util.Map;
 /**
  * Cliente do Openrouteservice (https://openrouteservice.org): geocodificação e rotas a pé.
  *
- * A chave fica apenas no backend (variável de ambiente ORS_API_KEY no Railway).
  * As respostas são convertidas para os formatos que o frontend já usa:
  * - geocodificação → itens no formato do Nominatim ({lat, lon, display_name, type, address{...}})
  * - rotas → formato do OSRM ({routes: [{distance, duration, geometry}]})
@@ -42,7 +41,7 @@ public class OpenRouteService {
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
-    @Value("${ORS_API_KEY:}")
+    @Value("${safemap.ors.api-key:${ORS_API_KEY:}}")
     private String apiKey;
 
     public boolean isConfigurado() {
@@ -100,13 +99,11 @@ public class OpenRouteService {
             address.put("city", texto(p, "locality", "localadmin", "county"));
             address.put("state", texto(p, "region_a", "region"));
             address.put("country_code", "BRA".equals(p.path("country_a").asText()) ? "br" : p.path("country_a").asText("").toLowerCase());
-            if (address.get("road") == null && "venue".equals(layer)) {
-                address.put("road", texto(p, "name"));
-            }
-
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("lat", coords.get(1).asDouble());
             item.put("lon", coords.get(0).asDouble());
+            // Lugares (comércios, estações...): o frontend exibe "Nome — endereço"
+            item.put("name", "venue".equals(layer) ? texto(p, "name") : null);
             item.put("display_name", texto(p, "label", "name"));
             // Mesmos "class"/"type" do Nominatim, para o filtro de resultados amplos do frontend
             item.put("class", cidade ? "place" : layer);
