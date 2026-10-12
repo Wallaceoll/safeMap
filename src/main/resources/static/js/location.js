@@ -32,27 +32,48 @@ function updateUserLocation(lat, lng) {
     }
 }
 
+// Primeira posição: aceita a localização por rede/Wi-Fi (rápida, também em computadores sem GPS)
+const OPCOES_POSICAO_RAPIDA = { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 };
+// Acompanhamento contínuo: refina com o GPS quando o aparelho tiver
+const OPCOES_RASTREIO = { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 };
+
+let mapaCentralizadoNoUsuario = false;
+
+function descreverErroLocalizacao(err) {
+    switch (err?.code) {
+        case 1: return 'permissão de localização negada';
+        case 2: return 'localização indisponível no aparelho';
+        case 3: return 'tempo esgotado ao obter a localização';
+        default: return 'falha ao obter a localização';
+    }
+}
+
+function aoObterPosicao(pos) {
+    updateUserLocation(pos.coords.latitude, pos.coords.longitude);
+    // Centraliza só na primeira posição, venha ela da busca rápida ou do rastreio
+    if (!mapaCentralizadoNoUsuario) {
+        mapaCentralizadoNoUsuario = true;
+        map.setView(userCurrentLatLng, 16);
+    }
+}
+
 function startTracking() {
     if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                updateUserLocation(pos.coords.latitude, pos.coords.longitude);
-                map.setView([pos.coords.latitude, pos.coords.longitude], 16);
-            },
+            aoObterPosicao,
             (err) => {
-                console.warn('Permissão de localização negada ou falhou. Usando fallback (Paulista).', err);
+                console.warn(`Localização: ${descreverErroLocalizacao(err)}. Usando fallback (Paulista) até o rastreio obter uma posição.`, err);
             },
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            OPCOES_POSICAO_RAPIDA
         );
 
         userWatchId = navigator.geolocation.watchPosition(
-            (pos) => {
-                updateUserLocation(pos.coords.latitude, pos.coords.longitude);
-            },
+            aoObterPosicao,
             (err) => {
-                console.warn('Erro ao rastrear localização.', err);
+                // Tempo esgotado no rastreio não é definitivo: o navegador continua tentando
+                console.warn(`Rastreio de localização: ${descreverErroLocalizacao(err)}.`, err);
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            OPCOES_RASTREIO
         );
     } else {
         console.warn('Geolocalização não suportada no navegador.');
@@ -72,9 +93,14 @@ document.getElementById('btn-locate')?.addEventListener('click', () => {
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
+                    mapaCentralizadoNoUsuario = true;
                     updateUserLocation(pos.coords.latitude, pos.coords.longitude);
                     map.flyTo([pos.coords.latitude, pos.coords.longitude], 16);
-                }
+                },
+                (err) => {
+                    console.warn(`Localização: ${descreverErroLocalizacao(err)}.`, err);
+                },
+                OPCOES_POSICAO_RAPIDA
             );
         }
     }

@@ -19,6 +19,7 @@ import java.util.List;
 public class OcorrenciaService {
 
     private final OcorrenciaRepository ocorrenciaRepository;
+    private final ValidacaoGeograficaService validacaoGeografica;
 
     @Transactional(readOnly = true)
     public List<OcorrenciaResponse> listarTodas() {
@@ -31,9 +32,9 @@ public class OcorrenciaService {
     @Transactional
     public OcorrenciaResponse criar(OcorrenciaRequest request) {
         try {
-            if (request.latitude() < -24.008 || request.latitude() > -23.356 ||
-                request.longitude() < -46.826 || request.longitude() > -46.365) {
-                throw new IllegalArgumentException("As coordenadas devem estar estritamente dentro da cidade de São Paulo.");
+            // Limites oficiais das UFs (IBGE/PostGIS); indisponível → 503, nunca "fora do Brasil"
+            if (!validacaoGeografica.validar(request.latitude(), request.longitude()).dentroDoBrasil()) {
+                throw new IllegalArgumentException("As coordenadas devem estar dentro do território brasileiro.");
             }
 
             Ocorrencia ocorrencia = new Ocorrencia();

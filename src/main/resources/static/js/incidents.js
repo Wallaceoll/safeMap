@@ -88,7 +88,7 @@ function buildGroupedReports(incidentsArray, userReports) {
                 type: report.type || 'warning',
                 typeName: report.typeName || (report.type === 'danger' ? 'Alto Risco' : 'Aviso'),
                 address: report.address || 'Localização relatada',
-                district: report.district || 'São Paulo',
+                district: report.district || '',
                 reports: 1,
                 womenReports: isWomen ? 1 : 0,
                 lgbtReports:  isLgbt  ? 1 : 0,
@@ -124,7 +124,7 @@ function dbOcorrenciaToReport(oc) {
         typeName: TIPO_LABEL[oc.tipoOcorrencia] || oc.tipoOcorrencia,
         description: oc.descricao || '',
         address: oc.endereco || 'Localização relatada',
-        district: 'São Paulo',
+        district: '',
         targetGroup: isWomen && isLgbt ? ['women','lgbt'] : isWomen ? ['women'] : isLgbt ? ['lgbt'] : [],
         date: oc.dataHora || oc.criadoEm || new Date().toISOString(),
         reports: 1
@@ -304,7 +304,7 @@ window.openIncidentDetails = async function (data) {
     }
 
     title.textContent = data.address || 'Buscando endereço...';
-    descP.textContent = data.district ? `${data.district} — São Paulo, SP` : 'São Paulo, SP';
+    descP.textContent = window.safeMap.formatLocality(data) || 'Buscando localização...';
 
     riskRows[0].querySelector('.level-item').innerHTML = getRiskLevel(data.womenReports || 0);
 
@@ -388,11 +388,14 @@ window.openIncidentDetails = async function (data) {
     supportBlock.style.display = 'none';
     detailsOverlay.classList.add('active');
 
-    if (window.safeMap.getAddressFromCoords && (!data.address || !data.district || data.address === 'Localização relatada')) {
+    const hasAddress = data.address && data.address !== 'Localização relatada';
+    if (window.safeMap.getAddressFromCoords && (!hasAddress || !data.city)) {
         const geoData = await window.safeMap.getAddressFromCoords(data.lat, data.lng);
         if (geoData) {
-            title.textContent = geoData.street;
-            descP.textContent = geoData.district ? `${geoData.district} — São Paulo, SP` : 'São Paulo, SP';
+            if (!hasAddress) title.textContent = geoData.street;
+            descP.textContent = window.safeMap.formatLocality(geoData);
+        } else if (!window.safeMap.formatLocality(data)) {
+            descP.textContent = '';
         }
     }
 };

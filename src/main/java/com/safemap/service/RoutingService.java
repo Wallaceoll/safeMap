@@ -22,6 +22,7 @@ import java.util.Map;
 public class RoutingService {
 
     private final OcorrenciaRepository ocorrenciaRepository;
+    private final OpenRouteService openRouteService;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -30,10 +31,10 @@ public class RoutingService {
     @SuppressWarnings("unchecked")
     public Map<String, Object> calculateRoutes(double originLat, double originLng, double destLat, double destLng) {
         try {
-            String directCoords = String.format(java.util.Locale.US, "%f,%f;%f,%f", originLng, originLat, destLng, destLat);
-            Map<String, Object> responseMap = fetchOsrmRoute(directCoords);
+            Map<String, Object> responseMap = fetchRoute(List.of(
+                    new double[]{originLng, originLat}, new double[]{destLng, destLat}));
             if (responseMap == null) {
-                throw new RuntimeException("Falha ao consultar serviço de rotas externo (OSRM).");
+                throw new RuntimeException("Falha ao consultar serviço de rotas externo.");
             }
 
             List<Map<String, Object>> routes = (List<Map<String, Object>>) responseMap.get("routes");
@@ -73,12 +74,10 @@ public class RoutingService {
                         double w2Lat = dangerLat - offsetLat;
                         double w2Lng = dangerLng - offsetLng;
 
-                        Map<String, Object> r1Response = fetchOsrmRoute(
-                                String.format(java.util.Locale.US, "%f,%f;%f,%f;%f,%f", originLng, originLat, w1Lng, w1Lat, destLng, destLat)
-                        );
-                        Map<String, Object> r2Response = fetchOsrmRoute(
-                                String.format(java.util.Locale.US, "%f,%f;%f,%f;%f,%f", originLng, originLat, w2Lng, w2Lat, destLng, destLat)
-                        );
+                        Map<String, Object> r1Response = fetchRoute(List.of(
+                                new double[]{originLng, originLat}, new double[]{w1Lng, w1Lat}, new double[]{destLng, destLat}));
+                        Map<String, Object> r2Response = fetchRoute(List.of(
+                                new double[]{originLng, originLat}, new double[]{w2Lng, w2Lat}, new double[]{destLng, destLat}));
 
                         evaluateAndAddBypassRoute(routes, r1Response, activeIncidents, primaryRoute);
                         evaluateAndAddBypassRoute(routes, r2Response, activeIncidents, primaryRoute);
@@ -105,6 +104,21 @@ public class RoutingService {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao processar roteamento seguro: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Rota a pé pelos pontos informados ([lng, lat]).
+     * Usa o Openrouteservice quando ORS_API_KEY está configurada; senão, o servidor
+     * público de demonstração do OSRM (apenas para desenvolvimento local).
+     */
+    private Map<String, Object> fetchRoute(List<double[]> points) {
+        if (openRouteService.isConfigurado()) {
+            return openRouteService.rotaAPe(points);
+        }
+        String coordsQuery = points.stream()
+                .map(p -> String.format(java.util.Locale.US, "%f,%f", p[0], p[1]))
+                .collect(java.util.stream.Collectors.joining(";"));
+        return fetchOsrmRoute(coordsQuery);
     }
 
     private Map<String, Object> fetchOsrmRoute(String coordsQuery) {

@@ -81,6 +81,22 @@ public class GlobalException {
                 .body(ErroResponse.of(404, "Recurso não encontrado"));
     }
 
+    /** Limites das UFs indisponíveis — não é um erro do usuário nem "fora do Brasil". */
+    @ExceptionHandler(ValidacaoGeograficaIndisponivelException.class)
+    public ResponseEntity<ErroResponse> handleValidacaoGeograficaIndisponivel(ValidacaoGeograficaIndisponivelException ex) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ErroResponse.of(503, ex.getMessage()));
+    }
+
+    /** Dados inválidos detectados na regra de negócio (ex.: coordenadas fora do Brasil). */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErroResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErroResponse.of(400, ex.getMessage()));
+    }
+
     /** Erro de envio de e-mail (SMTP) — senha de app inválida, timeout, etc. */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErroResponse> handleRuntime(RuntimeException ex) {

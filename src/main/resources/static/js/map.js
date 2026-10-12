@@ -11,11 +11,19 @@ const map = L.map('map-viewport', {
     preferCanvas: true
 }).setView([INITIAL_LAT, INITIAL_LNG], INITIAL_ZOOM);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
+// Mapa base definido pelo backend (CARTO com chave em produção; Stadia sem chave no localhost)
+const FALLBACK_BASEMAP = {
+    tileUrl: 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 20
-}).addTo(map);
+};
+
+fetch('/api/config/mapa')
+    .then(res => res.ok ? res.json() : FALLBACK_BASEMAP)
+    .catch(() => FALLBACK_BASEMAP)
+    .then(cfg => {
+        L.tileLayer(cfg.tileUrl, { attribution: cfg.attribution, maxZoom: cfg.maxZoom || 20 }).addTo(map);
+    });
 
 map.createPane('pois');
 map.getPane('pois').style.zIndex = 400;
@@ -35,6 +43,13 @@ map.getPane('user').style.zIndex = 700;
 
 window.safeMap = window.safeMap || {};
 window.safeMap.map = map;
+
+/** "Bairro — Cidade, UF" a partir do retorno de getAddressFromCoords. */
+window.safeMap.formatLocality = function(geoData) {
+    if (!geoData) return '';
+    const cityUf = [geoData.city, geoData.state].filter(Boolean).join(', ');
+    return [geoData.district, cityUf].filter(Boolean).join(' — ');
+};
 
 window.safeMap.getAddressFromCoords = async function(lat, lng) {
     try {
@@ -67,7 +82,9 @@ window.safeMap.getAddressFromCoords = async function(lat, lng) {
             
             return {
                 street: addressStr || (data.address.Match_addr ? data.address.Match_addr.split(',')[0] : 'Endereço não encontrado'),
-                district: suburb || 'São Paulo'
+                district: suburb || '',
+                city: data.address.City || '',
+                state: data.address.RegionAbbr || ''
             };
         }
         return null;
@@ -103,7 +120,9 @@ window.safeMap.getAddressFromCoords = async function(lat, lng) {
                 
                 return {
                     street: addressStr || (data.display_name ? data.display_name.split(',')[0] : 'Endereço não encontrado'),
-                    district: suburb || 'São Paulo'
+                    district: suburb || '',
+                    city: data.address.city || data.address.town || data.address.village || data.address.municipality || '',
+                    state: window.safeMap.geo ? window.safeMap.geo.stateAbbr(data.address) : (data.address.state || '')
                 };
             }
             return null;

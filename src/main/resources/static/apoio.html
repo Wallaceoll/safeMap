@@ -9,7 +9,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/base.css?v=1.2">
     <link rel="stylesheet" href="css/apoio.css?v=1.2">
-    <script src="js/overpass.js?v=2.0"></script>
+    <script src="js/geo.js?v=1.1"></script>
+    <script src="js/apoio-api.js?v=1.0"></script>
     <script src="js/theme.js"></script>
 </head>
 
@@ -55,80 +56,22 @@
     </div>
 
     <script>
-        function formatAddress(item, typedNumber = null) {
-            if (!item || !item.address) return item ? (item.display_name || "") : "";
-            const addr = item.address;
-            const street = addr.road || addr.pedestrian || addr.construction || addr.path || "";
-            const number = addr.house_number || addr.building || typedNumber || "";
-            const numberStr = number ? `, ${number}` : "";
-            
-            let suburb = addr.suburb || addr.neighbourhood || addr.city_district || addr.quarter || addr.subdivision || addr.residential || "";
-            if (!suburb) {
-                const parts = (item.display_name || "").split(',').map(p => p.trim());
-                const spIndex = parts.findIndex(p => p === "São Paulo" || p === "Município de São Paulo");
-                if (spIndex > 0) {
-                    suburb = parts[spIndex - 1];
-                }
-            }
-            suburb = suburb || "Bairro não informado";
-
-            const city = addr.city || addr.town || "São Paulo";
-            const state = addr.state === "São Paulo" ? "SP" : (addr.state || "SP");
-            
-            if (!street) {
-                const locName = item.display_name.split(',')[0];
-                return `${locName}${numberStr ? ' ' + numberStr : ''} - ${suburb}, ${city} - ${state}`;
-            }
-            return `${street}${numberStr} - ${suburb}, ${city} - ${state}`;
-        }
-
-        async function searchAddressSP(query) {
-            const numberMatch = query.match(/\b\d+\b/);
-            const typedNumber = numberMatch ? numberMatch[0] : null;
-
-            const isSPCity = (item) => {
-                if (!item || !item.address) return false;
-                const addr = item.address;
-                const city = addr.city || addr.town || addr.municipality || addr.city_district || "";
-                const cityLower = city.toLowerCase();
-                return cityLower === "são paulo" || cityLower === "sao paulo" || cityLower === "município de são paulo";
-            };
-
-            let data = [];
-            try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
-                    headers: { 'Accept-Language': 'pt-BR', 'User-Agent': 'SafeMap/1.0' }
-                });
-                data = await res.json();
-            } catch (e) {
-                console.error("Geocoding fetch error:", e);
-            }
-
-            let filtered = data.filter(isSPCity);
-
-            if (filtered.length === 0 && typedNumber) {
-                const queryWithoutNumber = query.replace(/\b\d+\b/g, '').replace(/,\s*,/g, ',').trim();
-                if (queryWithoutNumber.length > 2) {
-                    try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryWithoutNumber)}+sao+paulo&limit=10&countrycodes=br&addressdetails=1`, {
-                            headers: { 'Accept-Language': 'pt-BR', 'User-Agent': 'SafeMap/1.0' }
-                        });
-                        const dataFallback = await res.json();
-                        filtered = dataFallback.filter(isSPCity);
-                    } catch (e) {
-                        console.error("Geocoding fallback fetch error:", e);
-                    }
-                }
-            }
-
-            return { results: filtered, typedNumber: typedNumber };
-        }
+        const { formatAddress, searchAddress, reverseLocality } = window.safeMap.geo;
 
         let userCoords = null;
+        let currentArea = null; // { district, city, state } da região pesquisada
         const listContainer = document.getElementById('resource-list');
         const searchInput = document.getElementById('resource-search');
         const suggestionsBox = document.getElementById('search-suggestions');
         const statusText = document.getElementById('location-status').querySelector('span');
+
+        function showListMessage(text) {
+            listContainer.innerHTML = '';
+            const div = document.createElement('div');
+            div.style.cssText = 'text-align:center; padding: 40px; color: var(--text-muted);';
+            div.textContent = text;
+            listContainer.appendChild(div);
+        }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371;
@@ -141,28 +84,29 @@
             return R * c;
         }
 
-        function getBBox(lat, lng, distance = 0.05) {
-            return `${lat - distance},${lng - distance},${lat + distance},${lng + distance}`;
-        }
-
-
-        function renderPois(pois, centerLat, centerLng) {
+        function renderPois(pois) {
             listContainer.innerHTML = "";
             if (pois.length === 0) {
-                listContainer.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">Nenhum recurso encontrado nesta região.</div>`;
+                showListMessage('Nenhum recurso encontrado nesta região.');
                 return;
             }
 
             pois.forEach(p => {
                 const tags = p.tags || {};
                 const name = tags.name || tags.operator || "Recurso de Apoio";
-                const suburb = tags['addr:suburb'] || tags['addr:neighbourhood'] || tags['addr:district'] || tags['addr:city_district'] || "Bairro não informado";
-                const city = tags['addr:city'] || "São Paulo";
+                const suburb = tags['addr:suburb'] || tags['addr:neighbourhood'] || tags['addr:district'] || tags['addr:city_district'] || "";
+                const city = tags['addr:city'] || (currentArea && currentArea.city) || "";
+                const uf = tags['addr:state'] ? window.safeMap.geo.stateAbbr({ state: tags['addr:state'] }) : ((currentArea && currentArea.state) || "");
+                const cityUf = [city, uf].filter(Boolean).join(' - ');
                 const street = tags['addr:street'] || "Endereço não disponível";
                 const number = tags['addr:housenumber'] || "S/N";
 
+                const subtitle = [suburb, cityUf].filter(Boolean).join(' • ');
+                const streetLine = tags['addr:street'] ? `${street}, ${number}` : street;
+                const fullAddress = [suburb ? `${streetLine} - ${suburb}` : streetLine, cityUf].filter(Boolean).join(', ');
+
                 const rawOpening = tags.opening_hours || "";
-                const is24h = rawOpening.includes("24/7") || rawOpening.includes("24h") || rawOpening.includes("24 hours") || 
+                const is24h = rawOpening.includes("24/7") || rawOpening.includes("24h") || rawOpening.includes("24 hours") ||
                               (!tags.opening_hours && (tags.amenity === 'police' || tags.amenity === 'hospital' || tags.emergency === 'yes'));
                 const opening = is24h ? "Aberto 24h" : (tags.opening_hours || "Aberto das 08h às 18h");
 
@@ -173,12 +117,12 @@
                         <h2 style="margin: 0; flex: 1; padding-right: 12px; font-size: 18px; font-weight: 700; color: var(--text-primary);">${name}</h2>
                         <span class="distance-tag">A ${p.distance.toFixed(1)} km</span>
                     </div>
-                    <span class="card-subtitle">${suburb} • ${city} - SP</span>
-                    
+                    <span class="card-subtitle">${subtitle}</span>
+
                     <div class="card-info">
                         <div class="info-item location">
                             <i data-lucide="map-pin" size="18"></i>
-                            <span>${street}, ${number} - ${suburb}, ${city} - SP</span>
+                            <span>${fullAddress}</span>
                         </div>
                         <div class="info-item status">
                             <i data-lucide="clock" size="18"></i>
@@ -209,7 +153,7 @@
 
             debounceTimer = setTimeout(async () => {
                 try {
-                    const { results, typedNumber } = await searchAddressSP(query);
+                    const { results, typedNumber } = await searchAddress(query, { near: userCoords || undefined, autocomplete: true });
 
                     if (results.length > 0) {
                         suggestionsBox.innerHTML = '';
@@ -254,10 +198,10 @@
 
             suggestionsBox.style.display = 'none';
             statusText.textContent = `Buscando região "${query}"...`;
-            listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Buscando localização...</div>';
+            showListMessage('Buscando localização...');
 
             try {
-                const { results, typedNumber } = await searchAddressSP(query);
+                const { results, typedNumber } = await searchAddress(query, { near: userCoords || undefined });
                 const result = results[0];
 
                 if (result) {
@@ -267,42 +211,60 @@
                     searchInput.value = formatAddress(result, typedNumber);
                     await loadApoio(lat, lon, displayName);
                 } else {
-                    statusText.textContent = `Região não encontrada em São Paulo. Tente outra busca.`;
-                    listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Local não encontrado na cidade de São Paulo. Tente digitar de outra forma (ex: "Paulista" ou "Consolação").</div>';
+                    statusText.textContent = `Região não encontrada. Tente outra busca.`;
+                    showListMessage('Local não encontrado. Tente incluir a cidade (ex: "Boa Viagem, Recife").');
                 }
             } catch (err) {
                 console.error('Geocoding error:', err);
                 statusText.textContent = `Erro na busca.`;
-                listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Erro ao buscar local. Verifique sua conexão.</div>';
+                showListMessage('Erro ao buscar local. Verifique sua conexão.');
             }
+        }
+
+        function applyInitialSearch(initialSearch) {
+            if (initialSearch) {
+                searchInput.value = initialSearch;
+                renderResources(initialSearch);
+            }
+        }
+
+        function askForSearch(message) {
+            statusText.textContent = message;
+            showListMessage('Ative a localização ou busque uma cidade ou endereço acima.');
         }
 
         async function initApoio() {
             const urlParams = new URLSearchParams(window.location.search);
             const initialSearch = urlParams.get('search');
+            const paramLat = parseFloat(urlParams.get('lat'));
+            const paramLng = parseFloat(urlParams.get('lng'));
+
+            // Vindo do mapa (clique em um ponto de apoio): busca ao redor do ponto
+            if (!isNaN(paramLat) && !isNaN(paramLng)) {
+                await loadApoio(paramLat, paramLng, initialSearch || "ponto selecionado");
+                applyInitialSearch(initialSearch);
+                return;
+            }
 
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(async pos => {
                     userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     await loadApoio(userCoords.lat, userCoords.lng);
-
+                    applyInitialSearch(initialSearch);
+                }, (err) => {
+                    askForSearch(err && err.code === 3
+                        ? "Não foi possível obter sua localização a tempo. Use a busca acima."
+                        : "GPS desativado. Use a busca acima.");
                     if (initialSearch) {
                         searchInput.value = initialSearch;
-                        renderResources(initialSearch);
+                        triggerSearch();
                     }
-                }, async err => {
-                    statusText.textContent = "GPS desativado. Use a busca acima.";
-                    await loadApoio(-23.5505, -46.6333, "São Paulo");
-                    if (initialSearch) {
-                        searchInput.value = initialSearch;
-                        renderResources(initialSearch);
-                    }
-                });
+                }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 });
             } else {
-                await loadApoio(-23.5505, -46.6333, "São Paulo");
+                askForSearch("Geolocalização indisponível. Use a busca acima.");
                 if (initialSearch) {
                     searchInput.value = initialSearch;
-                    renderResources(initialSearch);
+                    triggerSearch();
                 }
             }
         }
@@ -310,34 +272,39 @@
         let currentPois = [];
         async function loadApoio(lat, lng, label = "Sua localização") {
             statusText.textContent = `Buscando recursos próximos a ${label}...`;
-            listContainer.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Buscando recursos reais...</div>';
+            showListMessage('Buscando recursos reais...');
 
-            const bbox = getBBox(lat, lng);
-            let pois = await window.safeMap.fetchOverpassPOIs(bbox);
+            const [{ pois, failed }, area] = await Promise.all([
+                window.safeMap.fetchPOIsAround(lat, lng),
+                reverseLocality(lat, lng)
+            ]);
+            currentArea = area;
 
-            if (!pois || pois.length === 0) {
-                console.warn("[apoio] Usando pontos de apoio de fallback devido a falha na API ou ausência de recursos.");
-                pois = [
-                    { lat: lat + 0.002, lon: lng - 0.003, tags: { name: "Hospital de Apoio São Paulo", amenity: "hospital", 'addr:street': "Avenida Paulista", 'addr:housenumber': "200" } },
-                    { lat: lat - 0.001, lon: lng + 0.004, tags: { name: "78º Distrito Policial - Jardins", amenity: "police", 'addr:street': "Rua da Consolação", 'addr:housenumber': "1600" } },
-                    { lat: lat + 0.004, lon: lng + 0.001, tags: { name: "Centro de Acolhimento Social", social_facility: "shelter", 'addr:street': "Rua Augusta", 'addr:housenumber': "500" } }
-                ];
+            if (failed && pois.length === 0) {
+                statusText.textContent = `Não foi possível carregar os recursos.`;
+                showListMessage('O serviço de pontos de apoio está indisponível no momento. Tente novamente em instantes.');
+                currentPois = [];
+                return;
             }
 
-            currentPois = pois.map(p => {
-                const dist = calculateDistance(lat, lng, p.lat, p.lon);
-                return { ...p, distance: dist };
-            }).sort((a, b) => a.distance - b.distance);
+            currentPois = pois
+                .filter(p => p.tags && (p.tags.amenity === 'hospital' || p.tags.amenity === 'police' ||
+                                        p.tags.amenity === 'social_facility' || p.tags.social_facility))
+                .map(p => ({ ...p, distance: calculateDistance(lat, lng, p.lat, p.lon) }))
+                .sort((a, b) => a.distance - b.distance);
 
             renderPois(currentPois);
-            statusText.textContent = `Mostrando recursos em ${label}`;
+            const where = area && area.city ? `${label} (${[area.city, area.state].filter(Boolean).join(' - ')})` : label;
+            statusText.textContent = failed
+                ? `Mostrando parte dos recursos em ${where}`
+                : `Mostrando recursos em ${where}`;
         }
 
         function normalizeString(str) {
             return str
                 .toLowerCase()
                 .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "");
+                .replace(/[̀-ͯ]/g, "");
         }
 
         function renderResources(filter = "") {
