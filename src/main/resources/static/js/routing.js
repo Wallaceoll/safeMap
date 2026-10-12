@@ -123,7 +123,7 @@
     routeOrigin.addEventListener('input', () => {
         clearTimeout(debounceTimerOrigin);
         const query = routeOrigin.value.trim();
-        if (query.length < 4) {
+        if (query.length < 3) {
             routeOriginSuggestions.style.display = 'none';
             return;
         }
@@ -133,14 +133,14 @@
                 routeOrigin.value = name;
                 originCoords = { lat, lng };
                 routeOriginSuggestions.style.display = 'none';
-            });
+            }, routeOrigin);
         }, 500);
     });
 
     routeDest.addEventListener('input', () => {
         clearTimeout(debounceTimerDest);
         const query = routeDest.value.trim();
-        if (query.length < 4) {
+        if (query.length < 3) {
             routeDestSuggestions.style.display = 'none';
             return;
         }
@@ -150,7 +150,7 @@
                 routeDest.value = name;
                 destCoords = { lat, lng };
                 routeDestSuggestions.style.display = 'none';
-            });
+            }, routeDest);
         }, 500);
     });
 
@@ -163,28 +163,20 @@
         }
     });
 
-    async function fetchSuggestions(query, suggestionsBox, onSelect) {
+    async function fetchSuggestions(query, suggestionsBox, onSelect, input) {
         try {
-            const { results } = await window.safeMap.geo.searchAddress(query, { autocomplete: true });
-            const suggestions = results.slice(0, 5);
-
-            if (suggestions.length > 0) {
-                suggestionsBox.innerHTML = '';
-                suggestions.forEach(item => {
-                    const displayName = window.safeMap.geo.shortLabel(item);
-
-                    const div = document.createElement('div');
-                    div.innerHTML = `<i data-lucide="map-pin" size="12" style="margin-right:6px; opacity:0.6;"></i> ${displayName}`;
-                    div.addEventListener('click', () => {
-                        onSelect(parseFloat(item.lat), parseFloat(item.lon), displayName);
-                    });
-                    suggestionsBox.appendChild(div);
+            // Chamado a cada provedor que responde; ignora se o usuário já digitou outra coisa
+            const mostrar = (results) => {
+                if (input && input.value.trim() !== query) return;
+                window.safeMap.geo.renderSuggestions(suggestionsBox, results, {
+                    iconSize: 12,
+                    iconStyle: 'margin-right:6px; opacity:0.6;',
+                    label: window.safeMap.geo.shortLabel,
+                    onSelect: (item) => onSelect(parseFloat(item.lat), parseFloat(item.lon), window.safeMap.geo.shortLabel(item))
                 });
-                suggestionsBox.style.display = 'block';
-                if (window.lucide) window.lucide.createIcons();
-            } else {
-                suggestionsBox.style.display = 'none';
-            }
+            };
+            const { results } = await window.safeMap.geo.searchAddress(query, { autocomplete: true, onUpdate: mostrar });
+            mostrar(results);
         } catch (error) {
             console.error("Erro ao buscar sugestões Nominatim:", error);
         }

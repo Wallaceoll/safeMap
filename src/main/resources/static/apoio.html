@@ -9,7 +9,7 @@
     <script src="https://unpkg.com/lucide@1.55.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="css/base.css?v=1.2">
     <link rel="stylesheet" href="css/apoio.css?v=1.2">
-    <script src="js/geo.js?v=1.1"></script>
+    <script src="js/geo.js?v=1.2"></script>
     <script src="js/apoio-api.js?v=1.0"></script>
     <script src="js/theme.js?v=1.0"></script>
 </head>
@@ -56,7 +56,7 @@
     </div>
 
     <script>
-        const { formatAddress, searchAddress, reverseLocality } = window.safeMap.geo;
+        const { formatAddress, searchAddress, renderSuggestions, reverseLocality } = window.safeMap.geo;
 
         let userCoords = null;
         let currentArea = null; // { district, city, state } da região pesquisada
@@ -146,34 +146,29 @@
             const query = e.target.value.trim();
 
             clearTimeout(debounceTimer);
-            if (query.length < 4) {
+            if (query.length < 3) {
                 suggestionsBox.style.display = 'none';
                 return;
             }
 
             debounceTimer = setTimeout(async () => {
                 try {
-                    const { results, typedNumber } = await searchAddress(query, { near: userCoords || undefined, autocomplete: true });
-
-                    if (results.length > 0) {
-                        suggestionsBox.innerHTML = '';
-                        results.slice(0, 5).forEach(item => {
-                            const div = document.createElement('div');
-                            div.className = 'suggestion-item';
-                            const formatted = formatAddress(item, typedNumber);
-                            div.innerHTML = `<i data-lucide="map-pin" size="14"></i> <span>${formatted}</span>`;
-                            div.onclick = () => {
-                                searchInput.value = formatted;
+                    // Chamado a cada provedor que responde; ignora se o usuário já digitou outra coisa
+                    const mostrar = (results, typedNumber) => {
+                        if (searchInput.value.trim() !== query) return;
+                        renderSuggestions(suggestionsBox, results, {
+                            itemClass: 'suggestion-item',
+                            label: (item) => formatAddress(item, typedNumber),
+                            onSelect: (item) => {
+                                searchInput.value = formatAddress(item, typedNumber);
                                 suggestionsBox.style.display = 'none';
                                 loadApoio(parseFloat(item.lat), parseFloat(item.lon), item.display_name.split(',')[0]);
-                            };
-                            suggestionsBox.appendChild(div);
+                            }
                         });
-                        suggestionsBox.style.display = 'block';
-                        lucide.createIcons();
-                    } else {
-                        suggestionsBox.style.display = 'none';
-                    }
+                    };
+                    const { results, typedNumber } = await searchAddress(query,
+                        { near: userCoords || undefined, autocomplete: true, onUpdate: mostrar });
+                    mostrar(results, typedNumber);
                 } catch (e) { console.error(e); }
             }, 500);
         });
