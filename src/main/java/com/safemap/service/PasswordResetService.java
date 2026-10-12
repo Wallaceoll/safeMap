@@ -34,7 +34,10 @@ public class PasswordResetService {
     @Value("${safemap.cors.allowed-origins}")
     private String allowedOrigins;
 
-    @Value("${sendgrid.from-email}")
+    @Value("${sendgrid.api-key:${SENDGRID_API_KEY:}}")
+    private String sendGridApiKey;
+
+    @Value("${sendgrid.from-email:${SENDGRID_FROM_EMAIL:}}")
     private String fromEmail;
 
     // -------------------------------------------------------
@@ -111,10 +114,15 @@ public class PasswordResetService {
     // -------------------------------------------------------
 
     private void enviarEmailRecuperacao(Usuario usuario, String token) throws IOException {
+        if (sendGridApiKey.isBlank() || fromEmail.isBlank()) {
+            throw new IOException("SendGrid não configurado (defina SENDGRID_API_KEY e SENDGRID_FROM_EMAIL)");
+        }
+
         String baseUrl = allowedOrigins.split(",")[0].trim();
         String link = baseUrl + "/redefinir-senha.html?token=" + token;
 
-        log.debug("Enviando e-mail via SendGrid para: {} | link: {}", usuario.getEmail(), link);
+        // Não registrar o link: ele contém o token que permite redefinir a senha
+        log.debug("Enviando e-mail de recuperação via SendGrid para: {}", usuario.getEmail());
 
         Email from = new Email(fromEmail, "SafeMap");
         Email to = new Email(usuario.getEmail());

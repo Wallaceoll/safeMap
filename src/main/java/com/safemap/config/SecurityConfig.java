@@ -67,6 +67,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/ocorrencias/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/apoio/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/rotas/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/geocode/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/config/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/geo/**").permitAll()
 
                         // Frontend estático servido pelo Spring Boot
                         .requestMatchers(
