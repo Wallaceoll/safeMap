@@ -2,8 +2,8 @@ package com.safemap.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.safemap.model.Ocorrencia;
 import com.safemap.model.TipoOcorrencia;
+import com.safemap.repository.IncidenteRisco;
 import com.safemap.repository.OcorrenciaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +16,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,13 @@ public class RoutingService {
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .build();
+    /** Threads virtuais para pedir as rotas de desvio em paralelo (I/O bloqueante). */
+    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+
+    /** Raio (km) em que um relato conta como "perto" da rota. */
+    private static final double RAIO_RISCO_KM = 0.25;
+    /** Margem (graus de latitude, ~330 m) somada à área das rotas ao buscar relatos; maior que o raio de risco. */
+    private static final double MARGEM_GRAUS = 0.003;
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> calculateRoutes(double originLat, double originLng, double destLat, double destLng) {
@@ -44,19 +54,19 @@ public class RoutingService {
 
             routes = new ArrayList<>(routes);
 
-            List<Ocorrencia> activeIncidents = ocorrenciaRepository.findAllForHeatmap();
+            IncidentesProximos activeIncidents = new IncidentesProximos();
 
             Map<String, Object> primaryRoute = routes.get(0);
             Map<String, Object> primaryGeometry = (Map<String, Object>) primaryRoute.get("geometry");
             List<List<Double>> primaryCoords = primaryGeometry != null ? (List<List<Double>>) primaryGeometry.get("coordinates") : null;
-            double directRisk = calculateRouteRisk(primaryCoords, activeIncidents);
+            double directRisk = calculateRouteRisk(primaryCoords, activeIncidents.cobrindo(primaryCoords));
             primaryRoute.put("riskScore", directRisk);
 
             if (directRisk > 0.0 && primaryCoords != null) {
-                Ocorrencia nearestDanger = findFirstIntersectingIncident(primaryCoords, activeIncidents);
+                IncidenteRisco nearestDanger = findFirstIntersectingIncident(primaryCoords, activeIncidents.cobrindo(primaryCoords));
                 if (nearestDanger != null) {
-                    double dangerLat = nearestDanger.getLatitude();
-                    double dangerLng = nearestDanger.getLongitude();
+                    double dangerLat = nearestDanger.latitude();
+                    double dangerLng = nearestDanger.longitude();
 
                     double dLat = destLat - originLat;
                     double dLng = destLng - originLng;
@@ -74,10 +84,13 @@ public class RoutingService {
                         double w2Lat = dangerLat - offsetLat;
                         double w2Lng = dangerLng - offsetLng;
 
-                        Map<String, Object> r1Response = fetchRoute(List.of(
-                                new double[]{originLng, originLat}, new double[]{w1Lng, w1Lat}, new double[]{destLng, destLat}));
-                        Map<String, Object> r2Response = fetchRoute(List.of(
-                                new double[]{originLng, originLat}, new double[]{w2Lng, w2Lat}, new double[]{destLng, destLat}));
+                        // Os dois desvios são independentes: pedidos em paralelo
+                        CompletableFuture<Map<String, Object>> r1Future = CompletableFuture.supplyAsync(() -> fetchRoute(List.of(
+                                new double[]{originLng, originLat}, new double[]{w1Lng, w1Lat}, new double[]{destLng, destLat})), executor);
+                        CompletableFuture<Map<String, Object>> r2Future = CompletableFuture.supplyAsync(() -> fetchRoute(List.of(
+                                new double[]{originLng, originLat}, new double[]{w2Lng, w2Lat}, new double[]{destLng, destLat})), executor);
+                        Map<String, Object> r1Response = r1Future.join();
+                        Map<String, Object> r2Response = r2Future.join();
 
                         evaluateAndAddBypassRoute(routes, r1Response, activeIncidents, primaryRoute);
                         evaluateAndAddBypassRoute(routes, r2Response, activeIncidents, primaryRoute);
@@ -91,7 +104,7 @@ public class RoutingService {
                     Map<String, Object> geometry = (Map<String, Object>) route.get("geometry");
                     if (geometry != null) {
                         List<List<Double>> coords = (List<List<Double>>) geometry.get("coordinates");
-                        route.put("riskScore", calculateRouteRisk(coords, activeIncidents));
+                        route.put("riskScore", calculateRouteRisk(coords, activeIncidents.cobrindo(coords)));
                     } else {
                         route.put("riskScore", 0.0);
                     }
@@ -142,7 +155,7 @@ public class RoutingService {
     }
 
     @SuppressWarnings("unchecked")
-    private void evaluateAndAddBypassRoute(List<Map<String, Object>> routes, Map<String, Object> osrmResponse, List<Ocorrencia> incidents, Map<String, Object> primaryRoute) {
+    private void evaluateAndAddBypassRoute(List<Map<String, Object>> routes, Map<String, Object> osrmResponse, IncidentesProximos incidents, Map<String, Object> primaryRoute) {
         if (osrmResponse == null) return;
         List<Map<String, Object>> bypassRoutes = (List<Map<String, Object>>) osrmResponse.get("routes");
         if (bypassRoutes == null || bypassRoutes.isEmpty()) return;
@@ -152,7 +165,7 @@ public class RoutingService {
         if (geometry == null) return;
 
         List<List<Double>> coords = (List<List<Double>>) geometry.get("coordinates");
-        double riskScore = calculateRouteRisk(coords, incidents);
+        double riskScore = calculateRouteRisk(coords, incidents.cobrindo(coords));
 
         double directDistance = ((Number) primaryRoute.get("distance")).doubleValue();
         double bypassDistance = ((Number) candidate.get("distance")).doubleValue();
@@ -163,17 +176,17 @@ public class RoutingService {
         }
     }
 
-    private Ocorrencia findFirstIntersectingIncident(List<List<Double>> coordinates, List<Ocorrencia> incidents) {
+    private IncidenteRisco findFirstIntersectingIncident(List<List<Double>> coordinates, List<IncidenteRisco> incidents) {
         for (List<Double> coord : coordinates) {
             if (coord.size() < 2) continue;
             double lon = coord.get(0);
             double lat = coord.get(1);
 
-            for (Ocorrencia incident : incidents) {
-                if (incident.getLatitude() == null || incident.getLongitude() == null) continue;
-                if (!isHighRisk(incident.getTipoOcorrencia())) continue;
-                double distance = calculateDistance(lat, lon, incident.getLatitude(), incident.getLongitude());
-                if (distance <= 0.25) {
+            for (IncidenteRisco incident : incidents) {
+                if (incident.latitude() == null || incident.longitude() == null) continue;
+                if (!isHighRisk(incident.tipoOcorrencia())) continue;
+                double distance = calculateDistance(lat, lon, incident.latitude(), incident.longitude());
+                if (distance <= RAIO_RISCO_KM) {
                     return incident;
                 }
             }
@@ -184,10 +197,10 @@ public class RoutingService {
             double lon = coord.get(0);
             double lat = coord.get(1);
 
-            for (Ocorrencia incident : incidents) {
-                if (incident.getLatitude() == null || incident.getLongitude() == null) continue;
-                double distance = calculateDistance(lat, lon, incident.getLatitude(), incident.getLongitude());
-                if (distance <= 0.25) {
+            for (IncidenteRisco incident : incidents) {
+                if (incident.latitude() == null || incident.longitude() == null) continue;
+                double distance = calculateDistance(lat, lon, incident.latitude(), incident.longitude());
+                if (distance <= RAIO_RISCO_KM) {
                     return incident;
                 }
             }
@@ -195,17 +208,17 @@ public class RoutingService {
         return null;
     }
 
-    private double calculateRouteRisk(List<List<Double>> coordinates, List<Ocorrencia> incidents) {
+    private double calculateRouteRisk(List<List<Double>> coordinates, List<IncidenteRisco> incidents) {
         if (coordinates == null || coordinates.isEmpty() || incidents == null || incidents.isEmpty()) {
             return 0.0;
         }
 
         int uniqueNearIncidentsCount = 0;
 
-        for (Ocorrencia incident : incidents) {
-            if (incident.getLatitude() == null || incident.getLongitude() == null) continue;
-            double incidentLat = incident.getLatitude();
-            double incidentLng = incident.getLongitude();
+        for (IncidenteRisco incident : incidents) {
+            if (incident.latitude() == null || incident.longitude() == null) continue;
+            double incidentLat = incident.latitude();
+            double incidentLng = incident.longitude();
 
             boolean isNear = false;
             for (List<Double> coord : coordinates) {
@@ -214,7 +227,7 @@ public class RoutingService {
                 double lat = coord.get(1);
 
                 double distance = calculateDistance(lat, lon, incidentLat, incidentLng);
-                if (distance <= 0.25) {
+                if (distance <= RAIO_RISCO_KM) {
                     isNear = true;
                     break;
                 }
@@ -226,6 +239,56 @@ public class RoutingService {
         }
 
         return (double) uniqueNearIncidentsCount;
+    }
+
+    /**
+     * Relatos perto das rotas, carregados sob demanda: busca só o retângulo das
+     * rotas (mais uma margem maior que o raio de risco) e amplia a busca quando
+     * uma rota de desvio sai da área já carregada. O resultado é o mesmo de
+     * considerar todos os relatos do banco, pois só contam os que estão a até
+     * {@link #RAIO_RISCO_KM} do trajeto.
+     */
+    private final class IncidentesProximos {
+        private double south = Double.NaN, west, north, east;
+        private List<IncidenteRisco> carregados = List.of();
+
+        List<IncidenteRisco> cobrindo(List<List<Double>> coordinates) {
+            if (coordinates == null || coordinates.isEmpty()) return carregados;
+
+            double s = Double.POSITIVE_INFINITY, w = Double.POSITIVE_INFINITY;
+            double n = Double.NEGATIVE_INFINITY, e = Double.NEGATIVE_INFINITY;
+            for (List<Double> coord : coordinates) {
+                if (coord.size() < 2) continue;
+                w = Math.min(w, coord.get(0));
+                e = Math.max(e, coord.get(0));
+                s = Math.min(s, coord.get(1));
+                n = Math.max(n, coord.get(1));
+            }
+            if (Double.isInfinite(s)) return carregados;
+
+            // 1° de longitude encolhe com a latitude; a margem em longitude cresce na mesma proporção
+            double margemLng = MARGEM_GRAUS / Math.max(0.2, Math.cos(Math.toRadians(Math.max(Math.abs(s), Math.abs(n)))));
+            s -= MARGEM_GRAUS;
+            n += MARGEM_GRAUS;
+            w -= margemLng;
+            e += margemLng;
+
+            boolean jaCoberto = !Double.isNaN(south) && s >= south && n <= north && w >= west && e <= east;
+            if (!jaCoberto) {
+                if (!Double.isNaN(south)) {
+                    s = Math.min(s, south);
+                    w = Math.min(w, west);
+                    n = Math.max(n, north);
+                    e = Math.max(e, east);
+                }
+                south = s;
+                west = w;
+                north = n;
+                east = e;
+                carregados = ocorrenciaRepository.findIncidentesRiscoInBounds(south, west, north, east);
+            }
+            return carregados;
+        }
     }
 
     private boolean isHighRisk(TipoOcorrencia tipo) {
